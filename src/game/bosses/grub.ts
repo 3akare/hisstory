@@ -35,6 +35,10 @@ export interface GrubState {
   bonus: number;
   /** Length of the current appearance (for the countdown bar). */
   upFor: number;
+  /** Next time, pop up near Pip (revenge for his sister). */
+  revenge: boolean;
+  /** Multiplier on his pauses underground (below 1 = more often). */
+  pace: number;
 }
 
 export interface GrubOptions {
@@ -73,6 +77,8 @@ export class Grub implements BossController {
       age: 0,
       bonus: 0,
       upFor: 0,
+      revenge: false,
+      pace: 1,
     };
     this.maxHealth = health;
   }
@@ -114,6 +120,11 @@ export class Grub implements BossController {
     for (const allowLast of [false, true]) {
       const options = this.board.holes.map((_, i) => i).filter((i) => ok(i, allowLast));
       if (!options.length) continue;
+      if (this.s.revenge) {
+        // Revenge: the hole nearest Pip (but never right in his face).
+        this.s.revenge = false;
+        return options.reduce((a, b) => (manhattan(this.board.holes[b], w.head) < manhattan(this.board.holes[a], w.head) ? b : a));
+      }
       // Prefer holes Pip can actually reach in time.
       const near = options.filter((i) => manhattan(this.board.holes[i], w.head) <= GRUB.preferHoleDist);
       return w.rng.pick(near.length ? near : options);
@@ -181,11 +192,18 @@ export class Grub implements BossController {
         }
         s.lastHole = s.hole;
         s.hole = -1;
-        this.setMode('hidden', easedSlower(byHits(this.hiddenTime, s.hits), w.mercy));
+        this.setMode('hidden', easedSlower(byHits(this.hiddenTime, s.hits), w.mercy) * s.pace);
         break;
       }
     }
     return ev;
+  }
+
+  /** Pop up near Pip soon (telegraphed as usual). */
+  revengeNear(): void {
+    if (this.s.mode === 'defeated') return;
+    this.s.revenge = true;
+    if (this.s.mode === 'hidden') this.s.timer = Math.min(this.s.timer, 0.6);
   }
 
   /** Is Pip partway round him (a third of a lap or more)? Then he panics instead of escaping. */
@@ -229,6 +247,11 @@ export class Grub implements BossController {
 
   focus(): Cell | null {
     return this.s.mode === 'hidden' || this.s.mode === 'defeated' ? null : this.holeCell;
+  }
+
+  /** Snake cells or fruit can't sit on these. */
+  get holes(): Cell[] {
+    return this.board.holes;
   }
 
   snapshot(): GrubState {

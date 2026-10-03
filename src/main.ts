@@ -3,12 +3,13 @@ import '@fontsource/pixelify-sans/400.css';
 import { App } from './app';
 import { PlayScene } from './scenes/PlayScene';
 import { HomeScene } from './scenes/HomeScene';
-import { openMap } from './scenes/story';
+import { openMap, playChapter } from './scenes/story';
 import { normalizeCheckpoint } from './game/progress';
 import { CutsceneScene } from './scenes/CutsceneScene';
 import { ChapterMapScene } from './scenes/ChapterMapScene';
 import { bossLevel, CLASSIC_LEVEL } from './game/level';
 import { Grub } from './game/bosses/grub';
+import { MiraGrub } from './game/bosses/miraGrub';
 import { installDebug } from './debug/debug';
 import { FONT_DIALOG, FONT_PIXEL } from './engine/renderer';
 
@@ -29,10 +30,12 @@ async function boot(): Promise<void> {
   }
   const app = new App(canvas);
   normalizeCheckpoint(app.save.data.story);
-  // Debug shortcuts: ?debug=1&boss=grub, ?debug=1&scene=classic
+  // Debug shortcuts: ?debug=1&boss=grub, ?debug=1&scene=classic|map, ?debug=1&chapter=N
   const bossParam = app.debug ? app.params.get('boss') : null;
   const sceneParam = app.debug ? app.params.get('scene') : null;
-  if (bossParam === 'grub') app.scenes.go(new PlayScene(app, bossLevel('grub')), true);
+  const chapterParam = app.debug ? Number(app.params.get('chapter')) : 0;
+  if (chapterParam >= 1 && chapterParam <= 10) playChapter(app, chapterParam, true);
+  else if (bossParam === 'grub') app.scenes.go(new PlayScene(app, bossLevel('grub')), true);
   else if (sceneParam === 'classic') app.scenes.go(new PlayScene(app, CLASSIC_LEVEL), true);
   else if (sceneParam === 'map') openMap(app);
   else app.scenes.go(new HomeScene(app), true);
@@ -62,6 +65,12 @@ async function boot(): Promise<void> {
       info.score = s.lives.score;
       if (s.boss) info.bossHealth = s.boss.bars().map((b) => b.health);
       if (s.boss instanceof Grub) info.bossMode = s.boss.s.mode;
+      if (s.boss instanceof MiraGrub) {
+        info.miraMode = s.boss.m.mode;
+        info.bossMode = s.boss.grub.s.mode;
+      }
+      info.twists = s.twists.map((t) => t.id);
+      info.fruitKinds = s.world.fruits.map((f) => f.kind);
       info.eaten = s.world.eaten;
       info.level = s.level.title;
     }

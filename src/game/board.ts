@@ -61,3 +61,12 @@ export function parseBoard(rows: readonly string[] = []): Board {
 
 export const isWall = (board: Board, x: number, y: number): boolean =>
   !inBounds(x, y) || board.walls.has(cellKey(x, y));
+
+/** Find every cell marked with `mark` in a level map (e.g. `~` for ice patches). */
+export function parseMarks(rows: readonly string[] = [], mark: string): Cell[] {
+  const out: Cell[] = [];
+  rows.forEach((row, y) => {
+    for (let x = 0; x < row.length; x++) if (row[x] === mark) out.push({ x, y });
+  });
+  return out;
+}

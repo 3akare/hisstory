@@ -1,7 +1,7 @@
 import type { BiomeId } from '../art/palettes';
 import { Cell, Dir } from './board';
 import type { BossId } from './bosses/bossKit';
-import { GRUB } from './bosses/tuning';
+import { GRUB, MIRA_GRUB_MAP } from './bosses/tuning';
 import type { TwistId } from './twists';
 
 /** Everything PlayScene needs to set up one level. */
@@ -25,6 +25,8 @@ export interface LevelConfig {
   music: string;
   /** Chapter twists (game/twists.ts). */
   twists?: TwistId[];
+  /** Ice patch cells (Ch4). */
+  ice?: Cell[];
 }
 
 export const CLASSIC_LEVEL: LevelConfig = {
@@ -41,6 +43,21 @@ export const CLASSIC_LEVEL: LevelConfig = {
 
 export function bossLevel(id: BossId): LevelConfig {
   switch (id) {
+    case 'miraGrub':
+      return {
+        kind: 'boss',
+        title: 'MIRA + GRUB',
+        biome: 'desert',
+        map: MIRA_GRUB_MAP,
+        start: { x: 2, y: 9 },
+        startDir: 'R',
+        startLength: 10,
+        fruitCount: 2,
+        stepMs: 145,
+        boss: 'miraGrub',
+        music: 'boss-mira',
+        hint: 'CIRCLE EITHER MOLE!\nBOTH BARS MUST FALL',
+      };
     case 'grub':
     default:
       return {

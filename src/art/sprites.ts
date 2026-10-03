@@ -279,6 +279,26 @@ export const SPRITES = {
     '........',
     '........',
   ),
+  mira: s(
+    '..MMnn..',
+    '.nMNNNn.',
+    'nKWNNWKn',
+    'nNKNNKNn',
+    'nNNSSNNn',
+    'WnNRRNnW',
+    'WWnNNnWW',
+    '.WnnnnW.',
+  ),
+  trail: s(
+    '........',
+    '.b...B..',
+    '...bB...',
+    '..BbbB..',
+    '.bB..b..',
+    '...Bb...',
+    '..b...b.',
+    '........',
+  ),
 } satisfies Record<string, SpriteDef>;
 
 export type SpriteId = keyof typeof SPRITES;

@@ -59,4 +59,44 @@ export const SCRIPT: Record<number, ChapterScript> = {
       { who: 'narrator', text: 'Grub dives deep and is gone. Far to the east, someone is sharpening her claws.' },
     ],
   },
+  4: {
+    intro: [
+      { who: 'narrator', text: 'FROST FIELDS. The orchard is far behind now, and the ground is slick as glass.' },
+      { who: 'pip', text: 'Brr. Ice. Turning is going to be... slippery.' },
+      { who: 'mira', text: 'So YOU\u2019RE the noodle who buried my brother.', mood: 'angry' },
+      { who: 'pip', text: 'He\u2019s fine! He dug away!' },
+      { who: 'mira', text: 'He came home crying into his dirt pile. I\u2019m MIRA. And I\u2019m going to bury YOU.', mood: 'angry' },
+      { who: 'narrator', text: 'On ice you slide one extra tile before you turn. Turn early!' },
+    ],
+    outro: [
+      { who: 'mira', text: 'Quick little worm, aren\u2019t you? Fine. Follow me into the desert... if you dare.' },
+      { who: 'narrator', text: 'Mira tunnels away. A trail of sand leads east.' },
+    ],
+  },
+  5: {
+    intro: [
+      { who: 'narrator', text: 'DESERT RUINS. Old stones, a howling sandstorm, and strange glowing twin fruit.' },
+      { who: 'pip', text: 'These two blue fruit are... matching?' },
+      { who: 'narrator', text: 'Twin portal fruit! Eat one and you burst out of the other. The storm hides everything else.' },
+      { who: 'mira', text: 'Lost in the sand, noodle? My tunnels are EVERYWHERE.', mood: 'angry' },
+    ],
+    outro: [
+      { who: 'pip', text: 'Tunnels in the sand... two sets of them.' },
+      { who: 'mira', text: 'That\u2019s right. I brought family.' },
+      { who: 'grub', text: 'REMEMBER ME, NOODLE?!', mood: 'angry' },
+    ],
+  },
+  6: {
+    intro: [
+      { who: 'grub', text: 'I\u2019m BACK! And I\u2019m STRONGER! I\u2019ve been doing push-ups!', mood: 'angry' },
+      { who: 'mira', text: 'Together, brother. Dig and destroy.' },
+      { who: 'pip', text: 'Two moles. One snake. Okay. Okay okay okay.' },
+      { who: 'narrator', text: 'Circle either of them! Mira walks around stealing fruit. Grub pops out of holes. Both bars must fall.' },
+    ],
+    outro: [
+      { who: 'mira', text: 'Ugh! This isn\u2019t over! The King will... the King...', mood: 'angry' },
+      { who: 'grub', text: 'Sis... maybe we just go home?' },
+      { who: 'narrator', text: 'The moles retreat underground. High on a ridge, a long shape with glittering eyes has been watching.' },
+    ],
+  },
 };

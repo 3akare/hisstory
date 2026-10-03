@@ -1,6 +1,7 @@
 import { SpriteDef, SPRITES } from '../art/sprites';
 import type { BossController } from '../game/bosses/bossKit';
 import { Grub } from '../game/bosses/grub';
+import { MiraGrub } from '../game/bosses/miraGrub';
 import type { Cell } from '../game/board';
 import { COIL_DEGREES, windingDegrees } from '../game/coil';
 import { Renderer, TILE } from '../engine/renderer';
@@ -10,6 +11,11 @@ export function drawBoss(r: Renderer, boss: BossController, t: number, snake: re
   if (boss instanceof Grub) {
     drawGrub(r, boss, t);
     if (boss.s.mode === 'up' && boss.holeCell) drawCoilRing(r, boss.holeCell, windingDegrees(snake, boss.holeCell), t);
+  } else if (boss instanceof MiraGrub) {
+    drawGrub(r, boss.grub, t);
+    if (boss.grub.s.mode === 'up' && boss.grub.holeCell) drawCoilRing(r, boss.grub.holeCell, windingDegrees(snake, boss.grub.holeCell), t);
+    drawMira(r, boss, t);
+    if ((boss.m.mode === 'walk' || boss.m.mode === 'panic') && boss.m.health > 0) drawCoilRing(r, boss.miraCell, windingDegrees(snake, boss.miraCell), t);
   }
 }
 
@@ -75,6 +81,57 @@ export function drawGrub(r: Renderer, g: Grub, t: number): void {
     case 'diving': {
       const sink = Math.round(Math.min(1, s.age / 0.35) * 8);
       drawClipped(r, px, py, sink, 'grub');
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+export function drawMira(r: Renderer, b: MiraGrub, t: number): void {
+  const { boardX: ox, boardY: oy } = r.layout;
+  const m = b.m;
+  // Crumbling tunnel trail: fades as it's about to settle.
+  for (const tr of m.trail) {
+    const a = Math.min(1, tr.ttl / 0.6);
+    if (tr.ttl < 0.6 && Math.floor(t * 12) % 2 === 0) continue;
+    r.sprite('trail', SPRITES.trail, ox + tr.x * TILE, oy + tr.y * TILE, 'desert', { alpha: 0.5 + 0.5 * a });
+  }
+  const px = ox + m.x * TILE;
+  const py = oy + m.y * TILE;
+  switch (m.mode) {
+    case 'emerge': {
+      const jx = Math.round(Math.sin(t * 60));
+      r.sprite('dirt', SPRITES.dirt, px + jx, py - 1);
+      if (Math.floor(t * 8) % 2 === 0) r.text('!', px + 4, py - 9, { align: 'center', color: '#ff4fd8', size: 8 });
+      break;
+    }
+    case 'walk':
+    case 'panic': {
+      const bob = Math.floor(t * 8) % 2;
+      const flip = m.facing === 'L';
+      r.sprite('mira', SPRITES.mira, px, py - bob, 'orchard', { flipX: !flip });
+      if (m.mode === 'panic' && Math.floor(t * 6) % 2 === 0) {
+        r.rect(px + 8, py, 1, 2, '#4fd8ff');
+        r.rect(px - 1, py + 1, 1, 2, '#4fd8ff');
+      }
+      break;
+    }
+    case 'hit': {
+      const shake = Math.round(Math.sin(t * 50) * 1.5);
+      const white = Math.floor(t * 12) % 2 === 0;
+      r.sprite(white ? 'mira_white' : 'mira', white ? whiteOf(SPRITES.mira) : SPRITES.mira, px + shake, py);
+      break;
+    }
+    case 'diving': {
+      const sink = Math.round(Math.min(1, m.age / 0.4) * 8);
+      const ctx = r.ctx;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(px - 2, py - 4, TILE + 4, TILE + 4);
+      ctx.clip();
+      r.sprite('mira', SPRITES.mira, px, py + sink);
+      ctx.restore();
       break;
     }
     default:

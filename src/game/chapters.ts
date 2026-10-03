@@ -1,5 +1,6 @@
 import type { BiomeId } from '../art/palettes';
 import { bossLevel, LevelConfig } from './level';
+import { parseMarks } from './board';
 
 /**
  * The 10 chapters of Story mode, as data. Levels are data, not code.
@@ -37,6 +38,43 @@ const BOG_MAP = [
   '...###.......###....',
   W,
   W,
+  W,
+];
+
+/** `~` is ice: you slide one extra tile before turning. */
+const FROST_MAP = [
+  W,
+  W,
+  '..~~~~.......~~~~...',
+  '..~~~~.......~~~~...',
+  W,
+  '......#......#......',
+  '.......~~~~~~.......',
+  '.......~~~~~~.......',
+  '......#......#......',
+  W,
+  '..~~~~.......~~~~...',
+  '..~~~~.......~~~~...',
+  W,
+  W,
+  W,
+];
+
+const DESERT_MAP = [
+  W,
+  '.##..............##.',
+  '.#................#.',
+  W,
+  '.......#....#.......',
+  '.......#....#.......',
+  W,
+  W,
+  W,
+  '.......#....#.......',
+  '.......#....#.......',
+  W,
+  '.#................#.',
+  '.##..............##.',
   W,
 ];
 
@@ -130,9 +168,58 @@ export const CHAPTERS: ChapterDef[] = [
     available: true,
     level: () => ({ ...bossLevel('grub'), title: 'CH3 GRUB THE MOLE' }),
   },
-  comingSoon(4, 2, 'FROST FIELDS', 'frost'),
-  comingSoon(5, 2, 'DESERT RUINS', 'desert'),
-  comingSoon(6, 2, 'MIRA + GRUB', 'desert', true, 'MIRA'),
+  {
+    id: 4,
+    act: 2,
+    name: 'FROST FIELDS',
+    biome: 'frost',
+    boss: false,
+    available: true,
+    level: () =>
+      chapterLevel({
+        title: 'CH4 FROST FIELDS',
+        biome: 'frost',
+        map: FROST_MAP,
+        ice: parseMarks(FROST_MAP, '~'),
+        meterTarget: 14,
+        stepMs: 135,
+        music: 'frost',
+        twists: ['ice'],
+        start: { x: 2, y: 13 },
+        hint: 'ON ICE YOU SLIDE ONE\nMORE TILE. TURN EARLY!',
+      }),
+  },
+  {
+    id: 5,
+    act: 2,
+    name: 'DESERT RUINS',
+    biome: 'desert',
+    boss: false,
+    available: true,
+    level: () =>
+      chapterLevel({
+        title: 'CH5 DESERT RUINS',
+        biome: 'desert',
+        map: DESERT_MAP,
+        meterTarget: 16,
+        fruitCount: 3,
+        stepMs: 135,
+        music: 'desert',
+        twists: ['portal', 'fog'],
+        start: { x: 3, y: 7 },
+        hint: 'EAT A BLUE TWIN TO POP\nOUT OF THE OTHER ONE!',
+      }),
+  },
+  {
+    id: 6,
+    act: 2,
+    name: 'MIRA + GRUB',
+    biome: 'desert',
+    boss: true,
+    bossName: 'MIRA',
+    available: true,
+    level: () => ({ ...bossLevel('miraGrub'), title: 'CH6 MIRA + GRUB' }),
+  },
   comingSoon(7, 3, 'NEON CAVES', 'neon'),
   comingSoon(8, 3, 'SKY TEMPLE', 'sky'),
   comingSoon(9, 3, 'VIPER', 'sky', true, 'VIPER'),

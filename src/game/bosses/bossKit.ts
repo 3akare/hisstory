@@ -12,6 +12,10 @@ export type BossEvent =
   | { type: 'burrow'; at: Cell; who?: string }
   | { type: 'coiled'; at: Cell; pocket: Cell[]; who?: string; health: number }
   | { type: 'defeated'; at: Cell; who?: string }
+  /** One of two bosses is down (double fights). */
+  | { type: 'knockout'; at: Cell; who: string }
+  /** A boss took a fruit off the board. */
+  | { type: 'steal'; at: Cell; who?: string }
   | { type: 'hazard'; at: Cell; kind: string }
   | { type: 'line'; text: string; who?: string };
 
@@ -22,6 +26,8 @@ export interface BossWorld {
   head: Cell;
   rng: Rng;
   mercy: number;
+  /** Where the fruit is (bosses that chase or steal it). */
+  fruits?: readonly Cell[];
 }
 
 export interface BossBar {

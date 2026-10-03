@@ -128,6 +128,96 @@ export const BOG: Song = {
   drums: ['k . . h . . s . . k h . s . . h'],
 };
 
+const hfD = 'D5 A5 F#5 A5 D5 A5 F#5 A5 D5 A5 F#5 A5 D5 A5 F#5 A5';
+const hfE = 'E5 B5 G#5 B5 E5 B5 G#5 B5 E5 B5 G#5 B5 E5 B5 G#5 B5';
+const hfA = 'C#5 A5 E5 A5 C#5 A5 E5 A5 C#5 A5 E5 A5 C#5 A5 E5 A5';
+const hfBm = 'D5 B5 F#5 B5 D5 B5 F#5 B5 D5 B5 F#5 B5 D5 B5 F#5 B5';
+const bfD = 'D3 . . . A2 . . . D3 . . . A2 . . .';
+const bfE = 'E3 . . . B2 . . . E3 . . . B2 . . .';
+const bfA = 'A2 . . . E3 . . . A2 . . . E3 . . .';
+const bfBm = 'B2 . . . F#2 . . . B2 . . . F#2 . . .';
+
+/** FROST FIELDS (Ch4). Sparkly D lydian: glassy arpeggios, light steps. */
+export const FROST: Song = {
+  name: 'frost',
+  bpm: 116,
+  leadWave: 'pulse12',
+  harmonyWave: 'pulse12',
+  mix: { lead: 0.085, harmony: 0.025, bass: 0.13, drums: 0.06 },
+  lead: [
+    'D6 - A5 - F#5 - A5 - G#5 - - - E5 - - -',
+    'F#5 - E5 - D5 - E5 - F#5 - - - - - . .',
+    'D6 - A5 - F#5 - A5 - B5 - C#6 - D6 - - -',
+    'E6 - D6 - C#6 - A5 - B5 - - - . . . .',
+    'A5 . A5 . B5 . C#6 . D6 - - - A5 - - -',
+    'G#5 . G#5 . A5 . B5 . A5 - - - E5 - - -',
+    'F#5 . G#5 . A5 . B5 . C#6 . D6 . E6 - - -',
+    'D6 - - - A5 - - - D5 - - - . . . .',
+  ],
+  harmony: [hfD, hfE, hfD, hfA, hfD, hfE, hfBm, hfD],
+  bass: [bfD, bfE, bfD, bfA, bfD, bfE, bfBm, bfD],
+  drums: ['k . . . h . . . s . . . h . h .'],
+};
+
+const bdAm = 'A2 . A2 E2 . A2 . . A2 . A2 E2 . A2 G#2 .';
+const bdE = 'E2 . E2 B1 . E2 . . E2 . E2 B1 . E2 D2 .';
+const bdDm = 'D2 . D2 A1 . D2 . . D2 . D2 A1 . D2 C2 .';
+const bdFE = 'F2 . F2 C2 . F2 . . E2 . E2 B1 . E2 G#1 .';
+
+/** DESERT RUINS (Ch5). Driving A harmonic minor through the sandstorm. */
+export const DESERT: Song = {
+  name: 'desert',
+  bpm: 124,
+  leadWave: 'pulse25',
+  harmonyWave: 'pulse50',
+  mix: { lead: 0.085, harmony: 0.03, bass: 0.15, drums: 0.09 },
+  lead: [
+    'A4 . C5 . E5 . F5 E5 . D5 . C5 B4 . A4 .',
+    'G#4 - - - B4 - - - A4 - - - . . . .',
+    'A4 . C5 . E5 . A5 G#5 . F5 . E5 D5 . C5 .',
+    'B4 - C5 - D5 - B4 - E5 - - - . . . .',
+    'E5 . E5 . F5 . E5 . D5 . D5 . E5 . D5 .',
+    'C5 . C5 . D5 . C5 . B4 - - - G#4 - - -',
+    'A4 . B4 . C5 . D5 . E5 . F5 . G#5 . A5 .',
+    'E5 - - - G#4 - - - A4 - - - . . . .',
+  ],
+  harmony: ['E4 . . E4 . . E4 . E4 . . E4 . . E4 .'],
+  bass: [bdAm, bdE, bdAm, bdE, bdDm, bdFE, bdAm, bdE],
+  drums: ['k . s k . k s . k . s k . k s s'],
+};
+
+const bmDm = 'D2 . D3 . D2 . D3 . D2 . D3 . D2 . D3 .';
+const bmBb = 'Bb1 . Bb2 . Bb1 . Bb2 . Bb1 . Bb2 . Bb1 . Bb2 .';
+const bmA = 'A1 . A2 . A1 . A2 . A1 . A2 . A1 . A2 .';
+const bmGm = 'G1 . G2 . G1 . G2 . G1 . G2 . G1 . G2 .';
+const smDm = '. F4 . F4 . F4 . F4 . A4 . A4 . F4 . F4';
+const smBb = '. F4 . F4 . F4 . F4 . Bb4 . Bb4 . F4 . F4';
+const smA = '. E4 . E4 . A4 . A4 . C#5 . C#5 . E5 . E5';
+const smGm = '. G4 . G4 . Bb4 . Bb4 . G4 . G4 . D4 . D4';
+const mGroove = 'k . h k s . h k k . h k s . s h';
+
+/** MIRA + GRUB (Ch6). Grub's tune turned vengeful: the family theme in D minor. */
+export const BOSS_MIRA: Song = {
+  name: 'boss-mira',
+  bpm: 160,
+  leadWave: 'pulse25',
+  harmonyWave: 'pulse12',
+  mix: { lead: 0.085, harmony: 0.035, bass: 0.15, drums: 0.1 },
+  lead: [
+    'D5 . F5 D5 . A5 . D5 Bb5 . A5 . G5 . F5 .',
+    'E5 . F5 . A4 - - - . . A4 . C5 . D5 .',
+    'D5 . F5 D5 . A5 . D5 C6 . Bb5 . A5 . G5 .',
+    'F5 . G5 . A5 - - - C#6 - - - . . . .',
+    'A5 A5 . A5 G5 . F5 . G5 G5 . G5 F5 . E5 .',
+    'F5 . E5 . D5 . E5 . F5 - - - . . . .',
+    'Bb5 . A5 . G5 . F5 . G5 . A5 . Bb5 . C6 .',
+    'D6 - - - A5 - - - F5 - - - C#5 - - -',
+  ],
+  harmony: [smDm, smDm, smBb, smA, smDm, smDm, smGm, smA],
+  bass: [bmDm, bmDm, bmBb, bmA, bmDm, bmDm, bmGm, bmA],
+  drums: [mGroove, mGroove, mGroove, mGroove, mGroove, mGroove, mGroove, 'k k s . k k s . s s s s c . . .'],
+};
+
 /** THE MAP. A light, adventurous march in G. */
 export const MAP: Song = {
   name: 'map',

@@ -61,3 +61,50 @@ export const GRUB = {
   /** Long enough to wrap him straight away. */
   startLength: 10,
 };
+
+/** Ch6: Mira walks the surface; Grub comes back quicker ("I'm back, and stronger!"). */
+export const MIRA = {
+  health: 3,
+  maxPocket: 24,
+  /** Seconds per tile she walks (about one tile for every two of Pip's steps). */
+  stepTime: 0.34,
+  /** Once Grub is down she hurries. */
+  stepTimeAlone: 0.27,
+  /** Her crumbling tunnel trail stays dangerous this long. */
+  trailTime: 2.0,
+  hitStun: 0.9,
+  /** Underground after a coil, then she re-emerges somewhere else. */
+  hiddenTime: 1.2,
+  /** Dirt shakes where she'll come back up. */
+  emergeWarn: 1.0,
+  /** She re-emerges at least this far from Pip's head. */
+  emergeMinDist: 7,
+  start: { x: 15, y: 3 },
+};
+
+export const GRUB_RETURNS = {
+  upTime: [5.0, 4.5, 4.0],
+  hiddenTime: [1.4, 1.2, 1.0],
+  firstDelay: 3.5,
+  /** Once Mira is down he pops up more often. */
+  paceAlone: 0.75,
+};
+
+/** Ch6 arena (desert ruins): holes `o`, broken pillars `#`. */
+export const MIRA_GRUB_MAP = [
+  '....................',
+  '....................',
+  '...o..........o.....',
+  '....................',
+  '......#......#......',
+  '....................',
+  '....................',
+  '.........o..........',
+  '....................',
+  '....................',
+  '......#......#......',
+  '....................',
+  '...o..........o.....',
+  '....................',
+  '....................',
+];

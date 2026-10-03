@@ -1,7 +1,7 @@
 import { Rng } from '../engine/rng';
-import { BOARD_H, BOARD_W, Board, Cell, Dir, isWall, parseBoard } from './board';
+import { BOARD_H, BOARD_W, Board, Cell, Dir, isWall, manhattan, parseBoard } from './board';
 import { Blocker, checkCollision, CrashCause } from './collision';
-import { Fruit, fruitAt, FruitKind, randomFreeCell } from './fruit';
+import { Fruit, fruitAt, FruitKind, isSafeLanding, randomFreeCell } from './fruit';
 import { advance, nextHead, occupies, placeSnake, shrink, Snake } from './snake';
 import { POISON_SHRINK } from './twists';
 
@@ -12,6 +12,7 @@ import { POISON_SHRINK } from './twists';
 export type WorldEvent =
   | { type: 'eat'; fruit: Fruit }
   | { type: 'crash'; cause: CrashCause; at: Cell }
+  | { type: 'teleport'; from: Cell; to: Cell }
   | { type: 'step' };
 
 export interface WorldOptions {
@@ -70,11 +71,42 @@ export class World {
     this.reserved(x, y);
 
   fillFruit(): void {
-    while (this.fruits.length < this.fruitCount) {
-      const c = randomFreeCell(this.rng, this.blocked, this.avoid);
-      if (!c) return; // board is full
-      this.fruits.push({ kind: this.kindFor(this), x: c.x, y: c.y, age: 0 });
+    let guard = 0;
+    while (this.fruits.length < this.fruitCount && guard++ < 20) {
+      const kind = this.kindFor(this);
+      if (kind === 'portal') {
+        if (!this.spawnPortalPair()) this.spawnOne('apple');
+        continue;
+      }
+      if (!this.spawnOne(kind)) return; // board is full
     }
+  }
+
+  private spawnOne(kind: FruitKind): boolean {
+    const c = randomFreeCell(this.rng, this.blocked, this.avoid);
+    if (!c) return false;
+    this.fruits.push({ kind, x: c.x, y: c.y, age: 0 });
+    return true;
+  }
+
+  private nextPair = 1;
+
+  /** Two linked portal fruit, each placed where you'd land safely (3 free cells every way). */
+  private spawnPortalPair(): boolean {
+    const blockedOrNear = (x: number, y: number) => this.blocked(x, y);
+    const safe = (x: number, y: number) => !this.blocked(x, y) && isSafeLanding({ x, y }, blockedOrNear, 3);
+    const pick = (): Cell | null => randomFreeCell(this.rng, (x, y) => !safe(x, y), this.avoid);
+    const a = pick();
+    if (!a) return false;
+    const pair = this.nextPair++;
+    this.fruits.push({ kind: 'portal', x: a.x, y: a.y, age: 0, pair });
+    const b = randomFreeCell(this.rng, (x, y) => !safe(x, y) || manhattan({ x, y }, a) < 6, this.avoid);
+    if (!b) {
+      this.fruits.pop();
+      return false;
+    }
+    this.fruits.push({ kind: 'portal', x: b.x, y: b.y, age: 0, pair });
+    return true;
   }
 
   /** Advance the snake one cell. Returns what happened. A crash leaves the snake where it was. */
@@ -88,7 +120,18 @@ export class World {
     const i = fruitAt(this.fruits, head.x, head.y);
     if (i >= 0) {
       const fruit = this.fruits.splice(i, 1)[0];
-      if (fruit.kind === 'poison') {
+      if (fruit.kind === 'portal') {
+        // Burst out of the twin, still heading the same way. Both twins vanish.
+        const t = this.fruits.findIndex((f) => f.kind === 'portal' && f.pair === fruit.pair);
+        if (t >= 0) {
+          const twin = this.fruits.splice(t, 1)[0];
+          this.snake.cells[0] = { x: twin.x, y: twin.y };
+          events.push({ type: 'teleport', from: { x: fruit.x, y: fruit.y }, to: { x: twin.x, y: twin.y } });
+        }
+        this.snake.grow += 1;
+        this.eaten += 1;
+        this.points += 1;
+      } else if (fruit.kind === 'poison') {
         // Poison: shrink and lose a notch of the meter. No points.
         shrink(this.snake, POISON_SHRINK);
         this.eaten = Math.max(0, this.eaten - 1);

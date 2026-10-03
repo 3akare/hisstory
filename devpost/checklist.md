@@ -69,7 +69,7 @@ Build mode: fast
   Learner check: Play Ch2. Is poison fruit readable at a glance, and does the Bog feel different from the Orchard?
   Commit: `Act I complete: Mushroom Bog with poison fruit`
 
-- [ ] **7. Act II: Frost Fields, Desert Ruins portal fruit, Mira + Grub double boss**
+- [x] **7. Act II: Frost Fields, Desert Ruins portal fruit, Mira + Grub double boss**
   Becomes usable: Ch4 has Mira's revenge intro and ice that slides you one extra tile. Ch5 has twin portal fruit (eat one and you burst out of the other) inside sandstorm fog. Ch6 is the double boss: Mira roams and denies fruit, Grub returns faster ("I'm back, and stronger!"), there are two health bars, and Viper is glimpsed in the outro. Each part has its own palette and track (`frost`, `desert`, `boss-mira`).
   Why now: Story order. Portal fruit is the learner's own addition and the trickiest movement rule, so it's tested before Acts III and IV reuse the twist system.
   PRD ref: `prd.md > Portal Fruit`, `prd.md > Story Script`, `prd.md > Boss Design and Difficulty`
@@ -132,3 +132,4 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 - Input is now only blocked while a screen fades *out*, not while the next one fades in (a test showed the map ignoring Enter for a moment). Running out of lives goes straight to one Out of Lives screen; before, the play screen also drew its own box first.
 - Added `src/game/snapshot.ts` so mid-level saves are pure functions with their own unit test (a mid-Grub-fight snapshot replays identically after JSON), and `src/scenes/PauseScene.ts`. Escape and P now pause instead of quitting (Quit and Map are in the pause menu), and a pause button sits next to the music button for touch. A resumed game opens on a "WELCOME BACK" pause menu, and Resume runs the 3-2-1.
 - `isUnlocked` also opens anything already cleared or at or before your checkpoint, so Milestone 1 saves (Ch1 → Grub) keep everything when Ch2 is slotted in between. Level snapshots now carry per-twist state. Every chapter's start position is checked by a test for a clear 8-cell run-up, added after a screenshot showed Ch2's first start facing a wall.
+- Act II, applying what the coil play-test taught: Mira also freezes in "panic" while you circle her, Grub's return is quicker but still gentler than the original 4 s plan (5/4.5/4 s up), and Mira's trail lasts 2 s instead of 3. Added a `?debug=1&chapter=N` link for testing and demo recording. The hint banner now moves to whichever end of the board Pip isn't on (a screenshot showed it hiding Pip's Ch4 start).

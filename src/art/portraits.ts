@@ -4,7 +4,7 @@ import type { SpriteDef } from './sprites';
  * Cutscene portraits: 16×16 grids drawn at 2× (32×32 on screen) for a chunky
  * retro look. Each speaker has a neutral face and an angry/smug one.
  */
-export type SpeakerId = 'pip' | 'crow' | 'grub' | 'toad' | 'narrator';
+export type SpeakerId = 'pip' | 'crow' | 'grub' | 'toad' | 'mira' | 'narrator';
 export type Mood = 'neutral' | 'angry';
 
 export interface Portrait {
@@ -108,6 +108,27 @@ const TOAD: SpriteDef = {
   ],
 };
 
+const MIRA: SpriteDef = {
+  rows: [
+    '....MMM.MMM.....',
+    '....nMMMMMnnn...',
+    '...nNNNNNNNNn...',
+    '..nNNNNNNNNNNn..',
+    '.nNKWWNNNNWWKNn.',
+    '.nNNWKNNNNKWNNn.',
+    '.nNNNNNNNNNNNNn.',
+    '.nNNNNSSSSNNNNn.',
+    '.nNNNSSSSSSNNNn.',
+    '.nNNNNSSSSNNNNn.',
+    '.nNNNNRRRRNNNNn.',
+    '..nNNNNNNNNNNn..',
+    '..WnNNNNNNNNnW..',
+    '.WWWnnnnnnnnWWW.',
+    'WW.W........W.WW',
+    '................',
+  ],
+};
+
 export const PORTRAITS: Record<Exclude<SpeakerId, 'narrator'>, Portrait> = {
   pip: {
     name: 'PIP',
@@ -132,6 +153,14 @@ export const PORTRAITS: Record<Exclude<SpeakerId, 'narrator'>, Portrait> = {
     neutral: TOAD,
     angry: withRows(TOAD, { 2: '..WKKWW..WWKKW..', 3: '..WKKWLLLLWKKW..', 1: '...KKK....KKK...' }),
     frame: '#24361a',
+  },
+  mira: {
+    name: 'MIRA',
+    color: '#ff4fd8',
+    side: 'right',
+    neutral: MIRA,
+    angry: withRows(MIRA, { 3: '..nKKNNNNNNKKn..', 4: '.nNKKWNNNNWKKNn.', 10: '.nNNNRKKKKRNNNn.' }),
+    frame: '#3a1a33',
   },
   grub: {
     name: 'GRUB',

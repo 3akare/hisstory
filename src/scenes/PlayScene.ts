@@ -5,10 +5,11 @@ import { Action, ACTION_DIR, dpadDir, PointerInfo } from '../engine/input';
 import { Fx } from '../engine/fx';
 import { BOARD_PX_H, BOARD_PX_W, TILE } from '../engine/renderer';
 import type { App } from '../app';
-import { Cell, Dir, isWall, OPPOSITE, parseBoard, sameCell } from '../game/board';
+import { BOARD_H, Cell, Dir, isWall, OPPOSITE, parseBoard, sameCell } from '../game/board';
 import { checkCollision } from '../game/collision';
 import { BossController, BossEvent, BossWorld } from '../game/bosses/bossKit';
 import { Grub } from '../game/bosses/grub';
+import { MiraGrub } from '../game/bosses/miraGrub';
 import { GRUB } from '../game/bosses/tuning';
 import { ringAround } from '../game/coil';
 import { LevelConfig } from '../game/level';
@@ -19,6 +20,7 @@ import { LevelSnapshot, restoreLevel, snapshotLevel } from '../game/snapshot';
 import { createTwists, Twist } from '../game/twists';
 import { drawBoard, drawFruit, drawSnake, PIP_LOOK, WHITE_LOOK } from './draw';
 import { drawBoss } from './bossDraw';
+import { drawTwistsOver, drawTwistsUnder } from './twistDraw';
 import { drawDpad, drawHudBar, drawMeter } from './hud';
 import { MusicButton } from '../engine/ui';
 import { GameOverScene } from './GameOverScene';
@@ -55,6 +57,8 @@ export function createBoss(level: LevelConfig, world: World): BossController | n
   switch (level.boss) {
     case 'grub':
       return new Grub(world.board);
+    case 'miraGrub':
+      return new MiraGrub(world.board);
     default:
       return null;
   }
@@ -204,7 +208,7 @@ export class PlayScene extends Scene {
       seed,
     });
     this.boss = createBoss(this.level, this.world);
-    this.twists = createTwists(this.level.twists);
+    this.twists = createTwists(this.level.twists, this.level);
     const picker = this.twists.find((t) => t.fruitKind);
     if (picker) this.world.kindFor = (w) => picker.fruitKind!(w);
     this.wireBoss();
@@ -253,7 +257,14 @@ export class PlayScene extends Scene {
   }
 
   private bossWorld(): BossWorld {
-    return { board: this.world.board, snake: this.world.snake.cells, head: this.world.snake.cells[0], rng: this.world.rng, mercy: this.mercy };
+    return {
+      board: this.world.board,
+      snake: this.world.snake.cells,
+      head: this.world.snake.cells[0],
+      rng: this.world.rng,
+      mercy: this.mercy,
+      fruits: this.world.fruits,
+    };
   }
 
   // ---- input ---------------------------------------------------------------
@@ -421,6 +432,13 @@ export class PlayScene extends Scene {
         this.app.audio.sfx('eat');
         if (!this.isClassic) this.gainPoints(1, c);
         if (this.level.kind === 'chapter' && this.level.meterTarget && this.world.eaten >= this.level.meterTarget) this.clearChapter();
+      } else if (e.type === 'teleport') {
+        const a = this.cellCenter(e.from);
+        const b = this.cellCenter(e.to);
+        this.fx.burst(a.x, a.y, [BASE.C, BASE.W, '#2a7fa8'], 12, 60);
+        this.fx.burst(b.x, b.y, [BASE.C, BASE.W, '#2a7fa8'], 16, 80);
+        this.fx.flash('#4fd8ff', 0.18);
+        this.app.audio.sfx('portal');
       } else if (e.type === 'crash') {
         this.crash(e.cause);
       }
@@ -514,6 +532,23 @@ export class PlayScene extends Scene {
           this.fx.flash('#ffd94a', 0.35);
           this.gainPoints(COIL_POINTS, c);
           break;
+        case 'knockout':
+          this.fx.burst(c.x, c.y, [BASE.Y, BASE.W, BASE.M, BASE.O], 40, 120, { life: 0.8 });
+          this.fx.float(`${e.who} DOWN!`, c.x, c.y - 12, BASE.Y);
+          this.fx.shake(4, 0.4);
+          this.app.audio.sfx('bossDefeat');
+          break;
+        case 'steal': {
+          const i = this.world.fruits.findIndex((f) => f.x === e.at.x && f.y === e.at.y);
+          if (i >= 0) {
+            this.world.fruits.splice(i, 1);
+            this.world.fillFruit();
+            this.fx.burst(c.x, c.y, ['#9a6a3e', '#5a3622', BASE.R], 10, 50);
+            this.fx.float('STOLEN!', c.x, c.y - 8, BASE.M);
+            this.app.audio.sfx('poison');
+          }
+          break;
+        }
         case 'defeated':
           this.fx.burst(c.x, c.y, [BASE.Y, BASE.W, BASE.R, BASE.O, BASE.G], 60, 140, { life: 0.9 });
           this.fx.shake(5, 0.6);
@@ -556,9 +591,11 @@ export class PlayScene extends Scene {
     if (this.level.kind === 'chapter') {
       this.world.eaten = this.level.meterTarget ?? 0;
       this.clearChapter();
-    } else if (this.boss instanceof Grub) {
-      this.boss.s.health = 0;
-      this.boss.s.mode = 'defeated';
+    } else if (this.boss) {
+      if (this.boss instanceof Grub) {
+        this.boss.s.health = 0;
+        this.boss.s.mode = 'defeated';
+      }
       this.handleBoss([{ type: 'defeated', at: this.world.snake.cells[0] }]);
     }
   }
@@ -571,8 +608,13 @@ export class PlayScene extends Scene {
   /** Wrap Pip around the boss right now and run the real coil check. */
   debugWrapBoss(): boolean {
     const boss = this.boss;
-    if (!(boss instanceof Grub) || boss.s.mode !== 'up') return false;
-    const h = boss.holeCell!;
+    let h: Cell | null = null;
+    if (boss instanceof Grub && boss.s.mode === 'up') h = boss.holeCell;
+    else if (boss instanceof MiraGrub) {
+      if (boss.m.mode === 'walk' || boss.m.mode === 'panic') h = boss.miraCell;
+      else if (boss.grub.s.mode === 'up') h = boss.grub.holeCell;
+    }
+    if (!boss || !h) return false;
     const ring = ringAround(h.x, h.y);
     const snake = this.world.snake;
     snake.cells = ring;
@@ -597,6 +639,7 @@ export class PlayScene extends Scene {
 
     this.drawHud();
     drawBoard(r, this.world.board, this.level.biome, this.t);
+    drawTwistsUnder(r, this.twists, this.t);
     drawFruit(r, this.world.fruits, this.t, this.level.biome);
     if (this.boss) drawBoss(r, this.boss, this.t, this.world.snake.cells);
 
@@ -610,6 +653,7 @@ export class PlayScene extends Scene {
     if (blinking && Math.floor(this.t * 12) % 2 === 0) look = WHITE_LOOK;
     if (!(this.respawning && this.state === 'ready' && Math.floor(this.t * 12) % 4 === 0)) drawSnake(r, this.world.snake, alpha, look, this.t);
 
+    drawTwistsOver(r, this.twists, this.world, this.t);
     if (this.pocketFx) this.drawPocket(this.pocketFx.cells, 1 - this.pocketFx.t / 0.7);
     if (this.showPockets) this.drawDebugPocket();
     this.fx.drawParticles(r);
@@ -700,7 +744,9 @@ export class PlayScene extends Scene {
       const lines = this.level.hint.split('\n');
       const w = Math.max(...lines.map((l) => r.measure(l))) + 12;
       const h = lines.length * 10 + 5;
-      const y = L.boardY + BOARD_PX_H - h - 4;
+      // Never cover Pip: the banner sits at whichever end of the board he isn't.
+      const headLow = this.world.snake.cells[0].y >= BOARD_H / 2;
+      const y = headLow ? L.boardY + 4 : L.boardY + BOARD_PX_H - h - 4;
       r.ctx.globalAlpha = a;
       r.panel(cx - w / 2, y, w, h, '#2a1a3a', BASE.Y, 0.9 * a);
       r.ctx.globalAlpha = 1;
