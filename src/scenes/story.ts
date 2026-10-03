@@ -6,6 +6,7 @@ import { ChapterMapScene } from './ChapterMapScene';
 import { CutsceneScene } from './CutsceneScene';
 import { OutOfLivesScene } from './OutOfLivesScene';
 import { PlayScene } from './PlayScene';
+import { EndingScene } from './EndingScene';
 
 /**
  * How Story mode's screens connect:
@@ -31,13 +32,21 @@ export function playChapter(app: App, id: number, skipIntro = false): void {
         chapterId: id,
         resume,
         onQuit: () => openMap(app, id),
+        kingPhase: story.kingPhase,
+        onKingPhase: (phase) => {
+          // The finale's mini-checkpoint: run out of lives and you restart at this phase.
+          story.kingPhase = phase;
+          app.save.save();
+        },
         onRestart: () => playChapter(app, id, true),
         onWin: () => {
           const next = completeChapter(story, id);
           story.resume = null;
+          if (id === 10) story.kingPhase = 1;
           app.save.save();
           const outro = SCRIPT[id]?.outro ?? [];
-          const back = () => openMap(app, next ?? id);
+          // The finale ends with the credits; everything else goes back to the map.
+          const back = () => (id === 10 ? app.scenes.go(new EndingScene(app)) : openMap(app, next ?? id));
           if (outro.length) app.scenes.go(new CutsceneScene(app, outro, ch.biome, back));
           else back();
         },

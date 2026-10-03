@@ -11,6 +11,7 @@ import { BossController, BossEvent, BossWorld } from '../game/bosses/bossKit';
 import { Grub } from '../game/bosses/grub';
 import { MiraGrub } from '../game/bosses/miraGrub';
 import { Viper } from '../game/bosses/viper';
+import { HollowKing } from '../game/bosses/hollowKing';
 import { GRUB } from '../game/bosses/tuning';
 import { ringAround } from '../game/coil';
 import { LevelConfig } from '../game/level';
@@ -52,10 +53,16 @@ export interface PlayHooks {
   onRestart?(scene: PlayScene): void;
   /** A saved snapshot to resume from. */
   resume?: unknown;
+  /** Finale: which phase to start in (mini-checkpoint). */
+  kingPhase?: 1 | 2 | 3;
+  /** Finale: a new phase was reached. */
+  onKingPhase?(phase: 1 | 2 | 3): void;
 }
 
-export function createBoss(level: LevelConfig, world: World): BossController | null {
+export function createBoss(level: LevelConfig, world: World, kingPhase: 1 | 2 | 3 = 1): BossController | null {
   switch (level.boss) {
+    case 'king':
+      return new HollowKing(world.board, kingPhase);
     case 'grub':
       return new Grub(world.board);
     case 'miraGrub':
@@ -119,7 +126,7 @@ export class PlayScene extends Scene {
 
   enter(): void {
     this.reset();
-    this.app.audio.music(this.level.music);
+    this.app.audio.music(this.boss instanceof HollowKing ? `boss-king-${this.boss.k.phase}` : this.level.music);
     if (this.hooks.resume !== undefined && this.restore(this.hooks.resume)) {
       // Back from a saved game: open paused, so nothing happens until you're ready.
       this.pausedFrom = 'playing';
@@ -210,7 +217,7 @@ export class PlayScene extends Scene {
       fruitCount: 0,
       seed,
     });
-    this.boss = createBoss(this.level, this.world);
+    this.boss = createBoss(this.level, this.world, this.hooks.kingPhase ?? 1);
     this.twists = createTwists(this.level.twists, this.level);
     const picker = this.twists.find((t) => t.fruitKind);
     if (picker) this.world.kindFor = (w) => picker.fruitKind!(w);
@@ -369,6 +376,7 @@ export class PlayScene extends Scene {
     this.fx.update(dt);
     this.world.tick(dt);
     if (this.hintTime > 0 && this.state === 'playing') this.hintTime -= dt;
+    if (this.hintTime <= 0) this.bossLine = null;
     if (this.pocketFx) {
       this.pocketFx.t += dt;
       if (this.pocketFx.t > 0.7) this.pocketFx = null;
@@ -512,11 +520,35 @@ export class PlayScene extends Scene {
     this.setState('ready');
   }
 
+  /** A boss speaking mid-fight (shown in the hint banner). */
+  private bossLine: string | null = null;
+
   private handleBoss(events: BossEvent[]): void {
     for (const e of events) {
-      if (e.type === 'line') continue;
+      if (e.type === 'line') {
+        this.bossLine = e.text;
+        this.hintTime = 3;
+        this.fx.flash('#8b5cf6', 0.4);
+        this.fx.shake(4, 0.6);
+        this.app.audio.sfx('bossDefeat');
+        if (this.boss instanceof HollowKing) {
+          const phase = this.boss.k.phase;
+          this.app.audio.music(`boss-king-${phase}`);
+          this.hooks.onKingPhase?.(phase);
+          this.saveSnapshot();
+        }
+        continue;
+      }
       const c = this.cellCenter(e.at);
       switch (e.type) {
+        case 'hazard':
+          if (e.kind === 'crow') this.app.audio.sfx('portal');
+          else if (e.kind === 'crowWarn' || e.kind === 'crumbleWarn') this.app.audio.sfx('telegraph');
+          else if (e.kind === 'crumble') {
+            this.fx.shake(5, 0.5);
+            this.app.audio.sfx('crash');
+          }
+          break;
         case 'telegraph':
           this.app.audio.sfx('telegraph');
           this.fx.burst(c.x, c.y, ['#9a6a3e', '#5a3622'], 6, 30, { gravity: 120, life: 0.4 });
@@ -623,6 +655,18 @@ export class PlayScene extends Scene {
       if (boss.m.mode === 'walk' || boss.m.mode === 'panic') h = boss.miraCell;
       else if (boss.grub.s.mode === 'up') h = boss.grub.holeCell;
     } else if (boss instanceof Viper && boss.present && boss.v.mode !== 'hit') h = boss.head;
+    if (boss instanceof HollowKing && (boss.k.mode === 'idle' || boss.k.mode === 'teleportWarn')) {
+      // Ring around his 2×2 body.
+      const ring = ringAround(boss.k.x, boss.k.y, 2, 2);
+      const snake = this.world.snake;
+      snake.cells = ring;
+      snake.prevTail = { ...ring[ring.length - 1] };
+      snake.grow = 0;
+      snake.queue = [];
+      snake.dir = 'R';
+      this.handleBoss(boss.afterStep(this.bossWorld()));
+      return true;
+    }
     if (!boss || !h) return false;
     const ring = ringAround(h.x, h.y);
     const snake = this.world.snake;
@@ -748,9 +792,10 @@ export class PlayScene extends Scene {
       if (blink) r.text(go, cx, cy + 9, { align: 'center', color: '#c2c3c7' });
     }
 
-    if (this.hintTime > 0 && this.level.hint && (this.state === 'playing' || this.state === 'ready')) {
+    const hint = this.bossLine ?? this.level.hint;
+    if (this.hintTime > 0 && hint && (this.state === 'playing' || this.state === 'ready')) {
       const a = Math.min(1, this.hintTime * 2);
-      const lines = this.level.hint.split('\n');
+      const lines = hint.split('\n');
       // The compact dialogue font keeps long tips inside a phone-width board.
       const w = Math.min(BOARD_PX_W - 4, Math.max(...lines.map((l) => r.measure(l, 10, 'dialog'))) + 14);
       const h = lines.length * 11 + 6;

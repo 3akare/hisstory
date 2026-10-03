@@ -304,6 +304,67 @@ export const BOSS_VIPER: Song = {
   drums: ['k . s . k . s . k . s . k k s .'],
 };
 
+const KING_LEAD = [
+  'D5 - - - Eb5 - - - D5 - C5 - Bb4 - A4 -',
+  'Bb4 - - - A4 - - - G4 - - - A4 - - -',
+  'D5 - - - F5 - - - Eb5 - D5 - C5 - Bb4 -',
+  'A4 - - - - - - - F#4 - - - A4 - - -',
+];
+const KING_BASS = [
+  'D2 . . D2 . . D2 . Eb2 . . Eb2 . . D2 .',
+  'G1 . . G1 . . G1 . A1 . . A1 . . A1 .',
+  'Bb1 . . Bb1 . . Bb1 . C2 . . C2 . . D2 .',
+  'A1 . . A1 . . A1 . A1 . . A1 . . A1 .',
+];
+
+/** THE HOLLOW KING, phase 1. Grand and dark: the snake scale, slowed into a funeral march. */
+export const BOSS_KING_1: Song = {
+  name: 'boss-king-1',
+  bpm: 126,
+  leadWave: 'pulse50',
+  harmonyWave: 'pulse12',
+  mix: { lead: 0.09, harmony: 0.035, bass: 0.17, drums: 0.1 },
+  lead: KING_LEAD,
+  harmony: ['D4 . A4 . D4 . A4 . Eb4 . A4 . Eb4 . A4 .'],
+  bass: KING_BASS,
+  drums: ['k . . . s . . . k . k . s . . .', 'k . . . s . . . k . k . s . . .', 'k . . . s . . . k . k . s . . .', 'k . k . s . k . k k s . s s c .'],
+};
+
+/** Phase 2: faster, with racing arpeggios. */
+export const BOSS_KING_2: Song = {
+  name: 'boss-king-2',
+  bpm: 138,
+  leadWave: 'pulse25',
+  harmonyWave: 'pulse12',
+  mix: { lead: 0.09, harmony: 0.035, bass: 0.17, drums: 0.11 },
+  lead: KING_LEAD,
+  harmony: ['D4 A4 D5 A4 D4 A4 D5 A4 Eb4 A4 Eb5 A4 Eb4 A4 Eb5 A4'],
+  bass: KING_BASS,
+  drums: ['k . h k s . h . k . h k s . s h'],
+};
+
+/** Phase 3: the snake song comes back, fast and triumphant. You're winning. */
+export const BOSS_KING_3: Song = {
+  name: 'boss-king-3',
+  bpm: 150,
+  leadWave: 'pulse25',
+  harmonyWave: 'pulse50',
+  mix: { lead: 0.095, harmony: 0.035, bass: 0.17, drums: 0.11 },
+  lead: [
+    'D5 - - Eb5 F#5 - G5 - A5 - - - G5 - F#5 -',
+    'Eb5 - F#5 - D5 - - - - - - - D5 . D5 .',
+    'D5 - - Eb5 F#5 - G5 - A5 - Bb5 - A5 - G5 -',
+    'F#5 - G5 - F#5 - Eb5 - D5 - - - D6 - - -',
+    'A5 - - - Bb5 - A5 - G5 - F#5 - G5 - A5 -',
+    'F#5 - Eb5 - D5 - Eb5 - F#5 - - - . . . .',
+    'C6 - Bb5 - A5 - G5 - F#5 - G5 - A5 - - -',
+    'D6 - - - - - - - D5 - - - . . . .',
+  ],
+  harmony: ['A4 . D5 . F#5 . D5 . A4 . D5 . F#5 . D5 .', 'A4 . D5 . G5 . D5 . A4 . Eb5 . F#5 . Eb5 .'],
+  bass: ['D2 D3 D2 D3 D2 D3 D2 D3 D2 D3 D2 D3 A1 A2 A1 A2', 'D2 D3 D2 D3 D2 D3 D2 D3 C2 C3 C2 C3 Bb1 Bb2 A1 A2'],
+  drums: ['k . h k s . h . k k h . s . h h'],
+};
+
 /** THE MAP. A light, adventurous march in G. */
 export const MAP: Song = {
   name: 'map',

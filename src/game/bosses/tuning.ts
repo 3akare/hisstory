@@ -154,3 +154,62 @@ export const VIPER_MAP = [
   '....................',
   '....................',
 ];
+
+/** Ch10: the Hollow King. 3 phases × 3 coils. Tests everything you've learned. */
+export const KING = {
+  healthPerPhase: 3,
+  /** He's 2×2, so the sealed pocket can be a little bigger. */
+  maxPocket: 30,
+  /** Seconds per tile he drifts, by phase (1, 2, 3). */
+  driftTime: [1.2, 1.2, 0.8],
+  /** Crow sweeps: seconds between, by phase (none in phase 2). */
+  crowEvery: [3.5, 0, 5.5],
+  crowWarn: 1.0,
+  crowFly: 0.6,
+  /** Phase 2: he teleports between spots this often (his shadow appears first). */
+  teleportEvery: 8,
+  teleportWarn: 1.0,
+  /** Phase 2: old foes pop out of the holes as hazards. */
+  cameoEvery: 2.6,
+  cameoWarn: 1.0,
+  cameoUp: 2.0,
+  /** Phase 3: the outer ring crumbles inward this often, down to `maxRings` rings. */
+  crumbleEvery: 20,
+  crumbleWarn: 1.5,
+  maxRings: 2,
+  /** After a coil he vanishes and reappears elsewhere. */
+  hitTime: 0.8,
+  goneTime: 0.6,
+  reappearWarn: 1.0,
+  reappearMinDist: 7,
+  /** Short pause between phases while he speaks. */
+  phaseBreak: 2.5,
+};
+
+/** Where the King can stand (top-left of his 2×2 body). */
+export const KING_SPOTS = [
+  { x: 5, y: 4 },
+  { x: 13, y: 4 },
+  { x: 5, y: 9 },
+  { x: 13, y: 9 },
+  { x: 9, y: 6 },
+];
+
+/** Ch10 arena: the Hollow Throne. Holes `o` for the phase-2 cameos. */
+export const KING_MAP = [
+  '....................',
+  '....................',
+  '...o............o...',
+  '....................',
+  '....................',
+  '....................',
+  '....................',
+  '....................',
+  '....................',
+  '....................',
+  '....................',
+  '....................',
+  '...o............o...',
+  '....................',
+  '....................',
+];

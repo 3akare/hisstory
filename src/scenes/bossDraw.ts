@@ -4,6 +4,9 @@ import { Grub } from '../game/bosses/grub';
 import { MiraGrub } from '../game/bosses/miraGrub';
 import { Viper } from '../game/bosses/viper';
 import { VIPER } from '../game/bosses/tuning';
+import { HollowKing, ringOf } from '../game/bosses/hollowKing';
+import { KING_FACE } from '../art/portraits';
+import { BOARD_H, BOARD_W } from '../game/board';
 import { drawSnake, SnakeLook } from './draw';
 import type { Cell } from '../game/board';
 import { COIL_DEGREES, windingDegrees } from '../game/coil';
@@ -14,6 +17,12 @@ export function drawBoss(r: Renderer, boss: BossController, t: number, snake: re
   if (boss instanceof Grub) {
     drawGrub(r, boss, t);
     if (boss.s.mode === 'up' && boss.holeCell) drawCoilRing(r, boss.holeCell, windingDegrees(snake, boss.holeCell), t);
+  } else if (boss instanceof HollowKing) {
+    drawKing(r, boss, t);
+    if (boss.k.mode === 'idle' || boss.k.mode === 'teleportWarn') {
+      const c = boss.center;
+      drawCoilRing(r, { x: c.x, y: c.y }, windingDegrees(snake, c), t, 15);
+    }
   } else if (boss instanceof Viper) {
     drawViper(r, boss, t);
     if (boss.present && boss.v.mode !== 'hit') drawCoilRing(r, boss.head, windingDegrees(snake, boss.head), t);
@@ -92,6 +101,70 @@ export function drawGrub(r: Renderer, g: Grub, t: number): void {
     default:
       break;
   }
+}
+
+export function drawKing(r: Renderer, b: HollowKing, t: number): void {
+  const { boardX: ox, boardY: oy } = r.layout;
+  const k = b.k;
+  // The Hollowing: crumbled rings are solid; the next ring cracks before it goes.
+  for (let y = 0; y < BOARD_H; y++)
+    for (let x = 0; x < BOARD_W; x++) {
+      const px = ox + x * TILE;
+      const py = oy + y * TILE;
+      if (b.crumbled(x, y)) {
+        r.rect(px, py, TILE, TILE, '#0a0710');
+        r.rect(px, py, TILE, 1, '#4b3a6b', 0.6);
+      } else if (b.cracking >= 0 && ringOf(x, y) === b.cracking) {
+        r.sprite('crack', SPRITES.crack, px, py, 'hollow', { alpha: Math.floor(t * 8) % 2 ? 0.9 : 0.4 });
+      }
+    }
+  // Crow lanes: flashing warning, then a crow streaks across.
+  for (const l of k.lanes) {
+    const n = l.axis === 'row' ? BOARD_W : BOARD_H;
+    for (let i = 0; i < n; i++) {
+      const cx = l.axis === 'row' ? i : l.index;
+      const cy = l.axis === 'row' ? l.index : i;
+      if (l.state === 'warn' && Math.floor(t * 10) % 2 === 0) r.rect(ox + cx * TILE, oy + cy * TILE, TILE, TILE, '#ff3b4a', 0.35);
+    }
+    if (l.state === 'fly') {
+      const p = 1 - l.timer / 0.6;
+      for (const off of [0, -2.5, -5]) {
+        const along = Math.round((p * (n + 6) + off - 3) * TILE);
+        const x = l.axis === 'row' ? ox + along : ox + l.index * TILE;
+        const y = l.axis === 'row' ? oy + l.index * TILE : oy + along;
+        r.sprite('crow', SPRITES.crow, x, y, 'hollow', { flipX: l.axis === 'row' });
+      }
+    }
+  }
+  // Old foes popping out of the holes (phase 2).
+  for (const c of k.cameos) {
+    const px = ox + c.x * TILE;
+    const py = oy + c.y * TILE;
+    if (c.state === 'warn') {
+      r.sprite('dirt', SPRITES.dirt, px + Math.round(Math.sin(t * 60)), py - 1);
+      if (Math.floor(t * 8) % 2 === 0) r.text('!', px + 4, py - 9, { align: 'center', color: '#ff4fd8', size: 8 });
+    } else r.sprite(c.who, SPRITES[c.who], px, py - (Math.floor(t * 6) % 2));
+  }
+  // Shadow where he'll appear.
+  if (k.target && (k.mode === 'teleportWarn' || k.mode === 'reappear') && Math.floor(t * 8) % 2 === 0) {
+    r.rect(ox + k.target.x * TILE + 1, oy + k.target.y * TILE + 2, 14, 13, '#000000', 0.5);
+  }
+  if (!b.present) return;
+  const px = ox + k.x * TILE;
+  const py = oy + k.y * TILE;
+  const float = Math.round(Math.sin(t * 2) * 1);
+  // Purple aura.
+  const ctx = r.ctx;
+  ctx.globalCompositeOperation = 'lighter';
+  const g = ctx.createRadialGradient(px + 8, py + 8, 2, px + 8, py + 8, 16);
+  g.addColorStop(0, 'rgba(139,92,246,0.45)');
+  g.addColorStop(1, 'rgba(139,92,246,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(px - 10, py - 10, 36, 36);
+  ctx.globalCompositeOperation = 'source-over';
+  const white = k.mode === 'hit' && Math.floor(t * 12) % 2 === 0;
+  if (k.mode === 'teleportWarn' && Math.floor(t * 12) % 2 === 0) return; // flickering out
+  r.sprite(white ? 'kingWhite' : 'kingFace', white ? whiteOf(KING_FACE) : KING_FACE, px, py + float - 1);
 }
 
 export const VIPER_LOOK: SnakeLook = { body: '#2fd6a0', outline: '#0e4d3f', stripe: '#a6f5dc', spot: '#167a63', eye: '#ffd94a' };

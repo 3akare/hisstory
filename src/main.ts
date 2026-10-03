@@ -11,6 +11,7 @@ import { bossLevel, CLASSIC_LEVEL } from './game/level';
 import { Grub } from './game/bosses/grub';
 import { MiraGrub } from './game/bosses/miraGrub';
 import { Viper } from './game/bosses/viper';
+import { HollowKing } from './game/bosses/hollowKing';
 import { installDebug } from './debug/debug';
 import { FONT_DIALOG, FONT_PIXEL } from './engine/renderer';
 
@@ -71,6 +72,14 @@ async function boot(): Promise<void> {
         info.bossMode = s.boss.grub.s.mode;
       }
       if (s.boss instanceof Viper) info.viperMode = s.boss.v.mode;
+      if (s.boss instanceof HollowKing) {
+        info.kingPhase = s.boss.k.phase;
+        info.kingMode = s.boss.k.mode;
+        info.kingLanes = s.boss.k.lanes.map((l) => l.state);
+        info.kingRings = s.boss.k.rings;
+        info.kingCracking = s.boss.cracking;
+        info.kingCameos = s.boss.k.cameos.map((c) => c.state);
+      }
       info.twists = s.twists.map((t) => t.id);
       info.fruitKinds = s.world.fruits.map((f) => f.kind);
       info.eaten = s.world.eaten;

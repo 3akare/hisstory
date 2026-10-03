@@ -1,7 +1,7 @@
 import type { BiomeId } from '../art/palettes';
 import { Cell, Dir } from './board';
 import type { BossId } from './bosses/bossKit';
-import { GRUB, MIRA_GRUB_MAP, VIPER_MAP } from './bosses/tuning';
+import { GRUB, KING_MAP, MIRA_GRUB_MAP, VIPER_MAP } from './bosses/tuning';
 import type { TwistId } from './twists';
 
 /** Everything PlayScene needs to set up one level. */
@@ -74,6 +74,21 @@ export function bossLevel(id: BossId): LevelConfig {
         boss: 'viper',
         music: 'boss-viper',
         hint: 'MAKE HER CRASH INTO YOU,\nTHEN CIRCLE HER HEAD!',
+      };
+    case 'king':
+      return {
+        kind: 'boss',
+        title: 'THE HOLLOW KING',
+        biome: 'hollow',
+        map: KING_MAP,
+        start: { x: 2, y: 7 },
+        startDir: 'R',
+        startLength: 12,
+        fruitCount: 3,
+        stepMs: 145,
+        boss: 'king',
+        music: 'boss-king-1',
+        hint: 'CIRCLE THE KING!\n3 PHASES, 3 COILS EACH',
       };
     case 'grub':
     default:

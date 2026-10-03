@@ -145,17 +145,6 @@ function chapterLevel(over: Partial<LevelConfig> & Pick<LevelConfig, 'title' | '
   };
 }
 
-const comingSoon = (id: number, act: 1 | 2 | 3 | 4, name: string, biome: BiomeId, boss = false, bossName?: string): ChapterDef => ({
-  id,
-  act,
-  name,
-  biome,
-  boss,
-  bossName,
-  available: false,
-  level: () => chapterLevel({ title: name, biome, music: 'orchard', meterTarget: 10 }),
-});
-
 export const CHAPTERS: ChapterDef[] = [
   {
     id: 1,
@@ -308,7 +297,16 @@ export const CHAPTERS: ChapterDef[] = [
     available: true,
     level: () => ({ ...bossLevel('viper'), title: 'CH9 VIPER' }),
   },
-  comingSoon(10, 4, 'THE HOLLOW KING', 'hollow', true, 'KING'),
+  {
+    id: 10,
+    act: 4,
+    name: 'THE HOLLOW KING',
+    biome: 'hollow',
+    boss: true,
+    bossName: 'KING',
+    available: true,
+    level: () => ({ ...bossLevel('king'), title: 'CH10 THE HOLLOW KING' }),
+  },
 ];
 
 export const chapter = (id: number): ChapterDef => CHAPTERS[id - 1];

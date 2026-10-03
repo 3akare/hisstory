@@ -1,5 +1,6 @@
 import { BASE, BIOMES } from '../art/palettes';
 import { Scene } from '../engine/scenes';
+import { SPRITES } from '../art/sprites';
 import { Action, PointerInfo } from '../engine/input';
 import { Menu, MusicButton } from '../engine/ui';
 import type { App } from '../app';
@@ -113,6 +114,10 @@ export class HomeScene extends Scene {
       r.text(L.touch ? 'TAP FOR SOUND' : 'PRESS ANY KEY FOR SOUND', cx, P.foot, { align: 'center', color: BASE.Y });
     }
     if (best > 0) r.text(`CLASSIC BEST ${best}`, cx, P.foot + 12, { align: 'center', color: '#83769c' });
+    if (this.app.save.data.story.finished) {
+      r.sprite('crown', SPRITES.crown, cx - 40, P.title - 9);
+      r.text('STORY COMPLETE!', cx, P.title - 9, { align: 'center', color: BASE.Y, font: 'dialog', size: 8 });
+    }
     if (!this.app.save.available) r.text('PROGRESS WON\'T BE SAVED', cx, P.foot + 24, { align: 'center', color: BASE.R });
 
     this.music.place(L.w);

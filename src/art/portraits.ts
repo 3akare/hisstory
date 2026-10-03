@@ -4,7 +4,7 @@ import type { SpriteDef } from './sprites';
  * Cutscene portraits: 16×16 grids drawn at 2× (32×32 on screen) for a chunky
  * retro look. Each speaker has a neutral face and an angry/smug one.
  */
-export type SpeakerId = 'pip' | 'crow' | 'grub' | 'toad' | 'mira' | 'viper' | 'narrator';
+export type SpeakerId = 'pip' | 'crow' | 'grub' | 'toad' | 'mira' | 'viper' | 'king' | 'narrator';
 export type Mood = 'neutral' | 'angry';
 
 export interface Portrait {
@@ -150,6 +150,27 @@ const VIPER: SpriteDef = {
   ],
 };
 
+export const KING_FACE: SpriteDef = {
+  rows: [
+    '....Y..Y..Y.....',
+    '....YYYYYYY.....',
+    '....YRYYYRY.....',
+    '...HEEEEEEEH....',
+    '..HEEEEEEEEEH...',
+    '..HEKKEEEKKEH...',
+    '..HEKPEEEKPEH...',
+    '..HEEEEKEEEEH...',
+    '...HEKEKEKEH....',
+    '...HHEEEEEHH....',
+    '..pHHHHHHHHHp...',
+    '.pHHpHHHHHpHHp..',
+    '.pHHpHHHHHpHHp..',
+    'pHHHpHHHHHpHHHp.',
+    'pppppppppppppppp',
+    '................',
+  ],
+};
+
 export const PORTRAITS: Record<Exclude<SpeakerId, 'narrator'>, Portrait> = {
   pip: {
     name: 'PIP',
@@ -174,6 +195,14 @@ export const PORTRAITS: Record<Exclude<SpeakerId, 'narrator'>, Portrait> = {
     neutral: TOAD,
     angry: withRows(TOAD, { 2: '..WKKWW..WWKKW..', 3: '..WKKWLLLLWKKW..', 1: '...KKK....KKK...' }),
     frame: '#24361a',
+  },
+  king: {
+    name: 'THE HOLLOW KING',
+    color: '#8b5cf6',
+    side: 'right',
+    neutral: KING_FACE,
+    angry: withRows(KING_FACE, { 4: '..HKKEEEEEKKH...', 5: '..HEKKEEEKKEH...', 6: '..HEKMEEEKMEH...' }),
+    frame: '#1c1426',
   },
   viper: {
     name: 'VIPER',

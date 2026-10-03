@@ -138,4 +138,21 @@ export const SCRIPT: Record<number, ChapterScript> = {
       { who: 'narrator', text: 'Viper vanishes into the clouds. Far below, the Hollow Throne begins to stir.' },
     ],
   },
+  10: {
+    intro: [
+      { who: 'narrator', text: 'THE HOLLOW THRONE. A cold, empty hall at the bottom of the world. Every stolen fruit ended up here.' },
+      { who: 'king', text: 'So. The garden worm who humbled my diggers and shamed my daughter.', mood: 'angry' },
+      { who: 'pip', text: 'Give the orchard its fruit back.' },
+      { who: 'king', text: 'The fruit fills the hollow. Without it I am NOTHING. I will never give it back!', mood: 'angry' },
+      { who: 'narrator', text: 'Three phases, three coils each. If you fall, you start again from the phase you reached.' },
+    ],
+    outro: [
+      { who: 'king', text: 'No... the hollow... it is filling with something else...', mood: 'angry' },
+      { who: 'pip', text: 'It\u2019s called sharing. You should try it some time.' },
+      { who: 'narrator', text: 'The stolen fruit bursts free and rolls home. Grub, Mira and even Viper help carry it.' },
+      { who: 'viper', text: 'Don\u2019t look at me like that. I\u2019m only here for the apples.' },
+      { who: 'grub', text: 'And the push-ups. I\u2019m here for the push-ups.' },
+      { who: 'narrator', text: 'And the Orchard blooms again.' },
+    ],
+  },
 };

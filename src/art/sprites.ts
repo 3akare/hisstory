@@ -299,6 +299,26 @@ export const SPRITES = {
     '..b...b.',
     '........',
   ),
+  crow: s(
+    '........',
+    '..KK....',
+    '.KkkK...',
+    'KkWkkKOO',
+    'KkkkkKO.',
+    '.KkkkK..',
+    '..K..K..',
+    '........',
+  ),
+  crack: s(
+    '...K....',
+    '...K....',
+    '..K.K...',
+    '.K...K..',
+    '.....K..',
+    '....K.K.',
+    '...K....',
+    '........',
+  ),
 } satisfies Record<string, SpriteDef>;
 
 export type SpriteId = keyof typeof SPRITES;
