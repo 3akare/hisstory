@@ -3,6 +3,10 @@ import '@fontsource/pixelify-sans/400.css';
 import { App } from './app';
 import { PlayScene } from './scenes/PlayScene';
 import { HomeScene } from './scenes/HomeScene';
+import { openMap } from './scenes/story';
+import { normalizeCheckpoint } from './game/progress';
+import { CutsceneScene } from './scenes/CutsceneScene';
+import { ChapterMapScene } from './scenes/ChapterMapScene';
 import { bossLevel, CLASSIC_LEVEL } from './game/level';
 import { Grub } from './game/bosses/grub';
 import { installDebug } from './debug/debug';
@@ -24,11 +28,13 @@ async function boot(): Promise<void> {
     /* fonts are a nicety; keep going */
   }
   const app = new App(canvas);
+  normalizeCheckpoint(app.save.data.story);
   // Debug shortcuts: ?debug=1&boss=grub, ?debug=1&scene=classic
   const bossParam = app.debug ? app.params.get('boss') : null;
   const sceneParam = app.debug ? app.params.get('scene') : null;
   if (bossParam === 'grub') app.scenes.go(new PlayScene(app, bossLevel('grub')), true);
   else if (sceneParam === 'classic') app.scenes.go(new PlayScene(app, CLASSIC_LEVEL), true);
+  else if (sceneParam === 'map') openMap(app);
   else app.scenes.go(new HomeScene(app), true);
   installDebug(app);
   app.loop.start();
@@ -56,7 +62,16 @@ async function boot(): Promise<void> {
       info.score = s.lives.score;
       if (s.boss) info.bossHealth = s.boss.bars().map((b) => b.health);
       if (s.boss instanceof Grub) info.bossMode = s.boss.s.mode;
+      info.eaten = s.world.eaten;
+      info.level = s.level.title;
     }
+    if (s instanceof CutsceneScene) {
+      info.line = s.index;
+      info.cutsceneDone = s.done;
+    }
+    if (s instanceof ChapterMapScene) info.selected = s.selected;
+    const st = app.save.data.story;
+    info.story = { completed: st.completed, checkpoint: st.checkpoint, lives: st.lives, score: st.score };
     return info;
   };
 }

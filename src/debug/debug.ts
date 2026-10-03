@@ -13,6 +13,7 @@ declare global {
  *   I  toggle invincibility (bosses and hazards can't hurt you)
  *   K  wrap Pip around the boss (runs the real coil check)
  *   O  show the coil target overlay
+ *   N  clear the current level (win)
  */
 export function installDebug(app: App): void {
   if (!app.debug) return;
@@ -23,6 +24,7 @@ export function installDebug(app: App): void {
     if (e.code === 'KeyI') p.invincible = !p.invincible;
     if (e.code === 'KeyK') p.debugWrapBoss();
     if (e.code === 'KeyO') p.showPockets = !p.showPockets;
+    if (e.code === 'KeyN') p.debugWin();
   });
   window.__HISSTORY_DEBUG__ = {
     wrapBoss: () => play()?.debugWrapBoss() ?? false,
@@ -37,6 +39,8 @@ export function installDebug(app: App): void {
       return true;
     },
     resetSave: () => app.save.reset(),
+    win: () => play()?.debugWin(),
+    crash: () => play()?.debugCrash(),
     invincible: (on: boolean) => {
       const p = play();
       if (p) p.invincible = on;

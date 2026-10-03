@@ -21,6 +21,7 @@ import { drawDpad, drawHudBar, drawMeter } from './hud';
 import { MusicButton } from '../engine/ui';
 import { GameOverScene } from './GameOverScene';
 import { HomeScene } from './HomeScene';
+import { openMap } from './story';
 
 export type PlayState = 'ready' | 'playing' | 'dead' | 'out' | 'won';
 
@@ -30,6 +31,8 @@ const GHOST_TIME = 1.2;
 const RESPAWN_BLINK = 0.9;
 
 export interface PlayHooks {
+  /** Story chapter number, if this is a Story level. */
+  chapterId?: number;
   /** Chapter cleared or boss defeated. */
   onWin?(scene: PlayScene): void;
   /** Out of lives (Story). */
@@ -176,7 +179,7 @@ export class PlayScene extends Scene {
       if (this.hooks.onWin) this.hooks.onWin(this);
       else this.reset();
     } else if (this.state === 'out') {
-      if (this.hooks.onOut) this.hooks.onOut(this);
+      if (this.hooks.onOut) return; // the Out of Lives screen takes over
       else {
         this.lives = freshLives();
         this.reset();
@@ -187,7 +190,10 @@ export class PlayScene extends Scene {
   onAction(action: Action, repeat: boolean): void {
     if (action === 'back' && !repeat) {
       this.app.audio.sfx('menuBack');
-      this.app.scenes.go(new HomeScene(this.app));
+      if (this.hooks.chapterId) {
+        this.persist();
+        openMap(this.app, this.hooks.chapterId);
+      } else this.app.scenes.go(new HomeScene(this.app));
       return;
     }
     if (this.state === 'dead' || this.state === 'won' || this.state === 'out') {
@@ -255,6 +261,10 @@ export class PlayScene extends Scene {
       }
       this.app.scenes.push(new GameOverScene(this.app, score, Math.max(prevBest, score), newBest));
     }
+    if (this.state === 'out' && this.hooks.onOut && !this.gameOverShown && this.stateTime > 0.8) {
+      this.gameOverShown = true;
+      this.hooks.onOut(this);
+    }
     if (this.state !== 'playing') return;
 
     if (this.ghost > 0) this.ghost -= dt;
@@ -286,14 +296,34 @@ export class PlayScene extends Scene {
         this.fx.shake(1, 0.08);
         this.app.audio.sfx('eat');
         if (!this.isClassic) this.gainPoints(1, c);
+        if (this.level.kind === 'chapter' && this.level.meterTarget && this.world.eaten >= this.level.meterTarget) this.clearChapter();
       } else if (e.type === 'crash') {
         this.crash(e.cause);
       }
     }
   }
 
+  /** Write Story progress (lives, score) to the save. Classic keeps nothing mid-run. */
+  persist(): void {
+    if (!this.isClassic) this.app.save.save();
+  }
+
+  private clearChapter(): void {
+    const { boardX, boardY } = this.app.renderer.layout;
+    for (let i = 0; i < 4; i++) {
+      this.fx.burst(boardX + 20 + i * 40, boardY + 40 + (i % 2) * 40, [BASE.Y, BASE.W, BASE.G, BASE.R], 20, 110, { life: 0.9 });
+    }
+    this.fx.flash('#ffd94a', 0.4);
+    this.fx.shake(2, 0.3);
+    this.app.audio.music(null);
+    this.app.audio.jingle('jingle-clear');
+    this.persist();
+    this.setState('won');
+  }
+
   private gainPoints(n: number, at: { x: number; y: number }): void {
     const extra = addPoints(this.lives, n);
+    this.persist();
     if (extra > 0) {
       this.fx.float('1UP!', at.x, at.y - 14, BASE.G);
       this.app.audio.sfx('oneUp');
@@ -315,7 +345,9 @@ export class PlayScene extends Scene {
     }
     this.livesLostThisFight++;
     if (cause === 'boss' && this.level.hint) this.hintTime = 3;
-    if (loseLife(this.lives) === 'out') {
+    const result = loseLife(this.lives);
+    this.persist();
+    if (result === 'out') {
       this.app.audio.jingle('jingle-game-over');
       this.setState('out');
       return;
@@ -392,6 +424,24 @@ export class PlayScene extends Scene {
     }
   }
 
+  /** Debug: clear the level right now (chapter meter full, or boss defeated). */
+  debugWin(): void {
+    if (this.state !== 'playing' && this.state !== 'ready') return;
+    if (this.level.kind === 'chapter') {
+      this.world.eaten = this.level.meterTarget ?? 0;
+      this.clearChapter();
+    } else if (this.boss instanceof Grub) {
+      this.boss.s.health = 0;
+      this.boss.s.mode = 'defeated';
+      this.handleBoss([{ type: 'defeated', at: this.world.snake.cells[0] }]);
+    }
+  }
+
+  /** Debug: lose a life as if Pip crashed. */
+  debugCrash(): void {
+    if (this.state === 'playing' || this.state === 'ready') this.crash('wall');
+  }
+
   /** Wrap Pip around the boss right now and run the real coil check. */
   debugWrapBoss(): boolean {
     const boss = this.boss;
@@ -457,6 +507,9 @@ export class PlayScene extends Scene {
     r.sprite('heart', SPRITES.heart, L.boardX, L.hudY + 1);
     r.text(`x${this.lives.lives}`, L.boardX + 8, L.hudY, { color: '#fff1e8' });
     r.text(String(this.lives.score).padStart(4, '0'), L.boardX + 34, L.hudY, { color: BASE.Y });
+    if (this.level.kind === 'chapter' && this.level.meterTarget) {
+      drawMeter(r, L.boardX + BOARD_PX_W - 88, L.hudY, 88, this.world.eaten, this.level.meterTarget, BASE.R, 'FRUIT');
+    }
     if (this.boss) {
       const bars = this.boss.bars();
       const area = 88;
@@ -502,7 +555,7 @@ export class PlayScene extends Scene {
         r.text(this.level.title, cx, cy - 8, { align: 'center', color: BASE.Y });
         if (blink) r.text(L.touch ? 'TAP AN ARROW' : 'PRESS A DIRECTION', cx, cy + 3, { align: 'center' });
       }
-    } else if (this.state === 'out' && this.stateTime > 0.5) {
+    } else if (this.state === 'out' && !this.hooks.onOut && this.stateTime > 0.5) {
       r.panel(cx - pw / 2, cy - 22, pw, 44);
       r.text('OUT OF LIVES', cx, cy - 15, { align: 'center', color: BASE.R });
       r.text('BACK TO CHECKPOINT', cx, cy - 3, { align: 'center' });

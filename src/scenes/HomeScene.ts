@@ -4,7 +4,8 @@ import { Action, PointerInfo } from '../engine/input';
 import { Menu, MusicButton } from '../engine/ui';
 import type { App } from '../app';
 import { ATTRACT_MAX_LENGTH, chooseDir } from '../game/attractAI';
-import { bossLevel, CLASSIC_LEVEL } from '../game/level';
+import { CLASSIC_LEVEL } from '../game/level';
+import { openMap } from './story';
 import { World } from '../game/world';
 import { drawBoard, drawFruit, drawSnake } from './draw';
 import { PlayScene } from './PlayScene';
@@ -52,9 +53,8 @@ export class HomeScene extends Scene {
 
   private start(mode: 'story' | 'classic'): void {
     this.app.audio.sfx('menuConfirm');
-    // Story mode's chapter map arrives in the next slice; for now Story opens the Grub fight.
-    const level = mode === 'classic' ? CLASSIC_LEVEL : bossLevel('grub');
-    this.app.scenes.go(new PlayScene(this.app, level));
+    if (mode === 'story') openMap(this.app);
+    else this.app.scenes.go(new PlayScene(this.app, CLASSIC_LEVEL));
   }
 
   onAction(a: Action, repeat: boolean): void {

@@ -52,6 +52,11 @@ export class SceneManager implements InputHandler {
     return this.fadeDir !== 0;
   }
 
+  /** Input is ignored only while fading OUT (the old scene is leaving); the new scene can be used while it fades in. */
+  private get blocked(): boolean {
+    return this.fadeDir === 1;
+  }
+
   /** Replace everything with `scene`, fading through black. */
   go(scene: Scene, instant = false): void {
     if (instant || this.stack.length === 0) {
@@ -115,13 +120,13 @@ export class SceneManager implements InputHandler {
       if (!repeat) this.app.toggleMusic();
       return;
     }
-    if (!this.transitioning) this.top?.onAction?.(a, repeat);
+    if (!this.blocked) this.top?.onAction?.(a, repeat);
   }
   onAnyKey(): void {
-    if (!this.transitioning) this.top?.onAnyKey?.();
+    if (!this.blocked) this.top?.onAnyKey?.();
   }
   onPointerDown(p: PointerInfo): void {
-    if (!this.transitioning) this.top?.onPointerDown?.(p);
+    if (!this.blocked) this.top?.onPointerDown?.(p);
   }
   onPointerMove(p: PointerInfo): void {
     this.top?.onPointerMove?.(p);

@@ -101,6 +101,34 @@ export const BOSS_GRUB: Song = {
   drums: [groove, groove, groove, groove, groove, groove, groove, 'k . s . k . s . s s s s c . . .'],
 };
 
+/** THE MAP. A light, adventurous march in G. */
+export const MAP: Song = {
+  name: 'map',
+  bpm: 118,
+  leadWave: 'pulse25',
+  harmonyWave: 'pulse12',
+  mix: { lead: 0.075, harmony: 0.03, bass: 0.13, drums: 0.07 },
+  lead: [
+    'G4 - B4 - D5 - B4 - G4 - D5 - G5 - - -',
+    'F#5 - E5 - D5 - C5 - B4 - A4 - B4 - - -',
+    'C5 - E5 - G5 - E5 - A4 - C5 - E5 - - -',
+    'D5 - C5 - B4 - A4 - G4 - - - . . . .',
+  ],
+  harmony: [
+    'D4 . G4 . D4 . G4 . D4 . G4 . D4 . G4 .',
+    'D4 . F#4 . A4 . F#4 . D4 . F#4 . A4 . F#4 .',
+    'E4 . G4 . C5 . G4 . E4 . A4 . C5 . A4 .',
+    'F#4 . A4 . D5 . A4 . G4 . B4 . D5 . . .',
+  ],
+  bass: [
+    'G2 . D3 . G2 . D3 . G2 . D3 . G2 . D3 .',
+    'D2 . A2 . D2 . A2 . D2 . A2 . D2 . A2 .',
+    'C3 . G2 . C3 . G2 . A2 . E3 . A2 . E3 .',
+    'D2 . A2 . D2 . A2 . G2 . D3 . G2 . . .',
+  ],
+  drums: ['k . h . s . h . k . k . s . h h'],
+};
+
 // ---- jingles (play once, over the music) ----------------------------------------
 
 export const JINGLE_CLEAR: Song = {
