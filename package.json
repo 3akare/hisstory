@@ -1,0 +1,26 @@
+{
+  "name": "hisstory",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "HISSTORY: a retro Snake game with a story mode, rivals and coil-to-conquer boss fights.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.4",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
+  },
+  "dependencies": {
+    "@fontsource/pixelify-sans": "^5.3.0",
+    "@fontsource/press-start-2p": "^5.3.0"
+  }
+}
