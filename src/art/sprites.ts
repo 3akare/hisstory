@@ -156,6 +156,35 @@ export const SPRITES = {
     '.b...b.b',
     '........',
   ),
+  speakerOn: s(
+    '...W.....',
+    '..WW..W..',
+    'WWWW...W.',
+    'WWWW.W.W.',
+    'WWWW.W.W.',
+    'WWWW...W.',
+    '..WW..W..',
+    '...W.....',
+  ),
+  speakerOff: s(
+    '...W.....',
+    '..WW.....',
+    'WWWW.R.R.',
+    'WWWW..R..',
+    'WWWW.R.R.',
+    'WWWW.....',
+    '..WW.....',
+    '...W.....',
+  ),
+  pauseIcon: s(
+    'WW.WW',
+    'WW.WW',
+    'WW.WW',
+    'WW.WW',
+    'WW.WW',
+    'WW.WW',
+    'WW.WW',
+  ),
 } satisfies Record<string, SpriteDef>;
 
 export type SpriteId = keyof typeof SPRITES;

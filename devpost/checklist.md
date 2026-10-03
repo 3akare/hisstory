@@ -29,7 +29,7 @@ Build mode: fast
   Learner check: Open the boss link and fight Grub a few times. Does coiling feel satisfying, and does losing a life feel fair?
   Commit: `Coil to conquer: Grub boss fight with lives and debug tools`
 
-- [ ] **3. Home screen with the snake theme, music toggle and mobile controls**
+- [x] **3. Home screen with the snake theme, music toggle and mobile controls**
   Becomes usable: The game opens on the HISSTORY title with a self-playing snake under a dark overlay. The first press starts a catchy, snake-charmer-style chiptune, and the speaker toggles it (remembered on reload). Classic is a real flow: Home → play → Game Over with best score and "New best!" → Retry/Home. Sound effects play for eat, hit and menus. On a phone-sized screen, an on-screen d-pad appears under the board.
   Why now: Web Audio is the second technical risk and a learning goal. The home screen is the first thing judges see. Mobile layout has to be settled before story screens are built on it.
   PRD ref: `prd.md > Home Screen`, `prd.md > Screens and Layout`, `prd.md > Classic Mode`, `prd.md > Controls`
@@ -127,3 +127,4 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 - Debug invincibility also auto-steers away from walls. The e2e test showed that "bosses can't hurt you" alone still lets the snake die on a wall and freeze the fight, which blocks testing and demo recording.
 - Boss timers run on the fixed 1/120 s update, not on snake steps. The fixed timestep already makes them deterministic, and seconds map directly onto the PRD's tuning numbers.
 - Checkpoint after slice 2: the learner found coiling far too hard ("it requires too much precision"). Changes: the board went from 24×18 to 20×15 so cells are bigger, and scaling now fills the window in quarter steps instead of wasting space. The coil rule became **circling ~300° around the boss** (winding angle), with the old sealed-pocket check kept for wall pins. Grub stays up 7/6/5 s instead of 4/3.5/3, warns for 1.5 s, prefers reachable holes, and panics instead of diving while you're partway round him. The boss snake is slower (150 ms per step), you start the fight at length 10, and a coil progress ring was added. `scope.md`, `prd.md` and `spec.md` are updated to match. The learner confirmed: "it's fine now."
+- Added `src/engine/ui.ts` (canvas-drawn menus and the speaker button) and `src/audio/tracks/core.ts` + `index.ts` (songs as note data, looked up by name). The spec named `audio/tracks/*.ts` but no shared menu widget. Home's STORY button opens the Grub fight until slice 4 adds the chapter map. The M key toggles music anywhere, and Escape returns Home until the slice 5 pause menu.

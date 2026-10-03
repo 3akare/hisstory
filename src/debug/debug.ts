@@ -26,6 +26,17 @@ export function installDebug(app: App): void {
   });
   window.__HISSTORY_DEBUG__ = {
     wrapBoss: () => play()?.debugWrapBoss() ?? false,
+    /** Put an apple two cells in front of Pip. */
+    fruitAhead: () => {
+      const p = play();
+      if (!p) return false;
+      const s = p.world.snake;
+      const v = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] }[s.dir];
+      const h = s.cells[0];
+      p.world.fruits = [{ kind: 'apple', x: h.x + v[0] * 2, y: h.y + v[1] * 2, age: 1 }];
+      return true;
+    },
+    resetSave: () => app.save.reset(),
     invincible: (on: boolean) => {
       const p = play();
       if (p) p.invincible = on;

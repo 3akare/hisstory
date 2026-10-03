@@ -18,6 +18,9 @@ import { classicStepMs, World, WorldEvent } from '../game/world';
 import { drawBoard, drawFruit, drawSnake, PIP_LOOK, WHITE_LOOK } from './draw';
 import { drawBoss } from './bossDraw';
 import { drawDpad, drawHudBar, drawMeter } from './hud';
+import { MusicButton } from '../engine/ui';
+import { GameOverScene } from './GameOverScene';
+import { HomeScene } from './HomeScene';
 
 export type PlayState = 'ready' | 'playing' | 'dead' | 'out' | 'won';
 
@@ -66,6 +69,8 @@ export class PlayScene extends Scene {
   private dpadPressed: Dir | null = null;
   private dpadPointer: number | null = null;
   showPockets = false;
+  private musicBtn = new MusicButton();
+  private gameOverShown = false;
 
   constructor(
     app: App,
@@ -87,6 +92,7 @@ export class PlayScene extends Scene {
 
   enter(): void {
     this.reset();
+    this.app.audio.music(this.level.music);
   }
 
   reset(): void {
@@ -110,6 +116,8 @@ export class PlayScene extends Scene {
     this.livesLostThisFight = 0;
     this.hintTime = this.level.hint ? 6.5 : 0;
     this.pocketFx = null;
+    this.gameOverShown = false;
+    this.best = this.app.save.data.classic.best;
     this.fx.clear();
   }
 
@@ -177,6 +185,11 @@ export class PlayScene extends Scene {
   }
 
   onAction(action: Action, repeat: boolean): void {
+    if (action === 'back' && !repeat) {
+      this.app.audio.sfx('menuBack');
+      this.app.scenes.go(new HomeScene(this.app));
+      return;
+    }
     if (this.state === 'dead' || this.state === 'won' || this.state === 'out') {
       if (!repeat && (action === 'confirm' || ACTION_DIR[action])) this.continueAfterEnd();
       return;
@@ -187,6 +200,10 @@ export class PlayScene extends Scene {
   }
 
   onPointerDown(p: PointerInfo): void {
+    if (this.musicBtn.hit(p.x, p.y)) {
+      this.app.toggleMusic();
+      return;
+    }
     if (this.state === 'dead' || this.state === 'won' || this.state === 'out') {
       this.continueAfterEnd();
       return;
@@ -227,6 +244,17 @@ export class PlayScene extends Scene {
       this.pocketFx.t += dt;
       if (this.pocketFx.t > 0.7) this.pocketFx = null;
     }
+    if (this.state === 'dead' && !this.gameOverShown && this.stateTime > 0.75) {
+      this.gameOverShown = true;
+      const prevBest = this.app.save.data.classic.best;
+      const score = this.world.points;
+      const newBest = score > prevBest;
+      if (newBest) {
+        this.app.save.data.classic.best = score;
+        this.app.save.save();
+      }
+      this.app.scenes.push(new GameOverScene(this.app, score, Math.max(prevBest, score), newBest));
+    }
     if (this.state !== 'playing') return;
 
     if (this.ghost > 0) this.ghost -= dt;
@@ -256,6 +284,7 @@ export class PlayScene extends Scene {
         this.fx.burst(c.x, c.y, [BASE.R, BASE.Y, BASE.W, BASE.O], 14, 70);
         this.fx.float('+1', c.x, c.y - 6, BASE.Y);
         this.fx.shake(1, 0.08);
+        this.app.audio.sfx('eat');
         if (!this.isClassic) this.gainPoints(1, c);
       } else if (e.type === 'crash') {
         this.crash(e.cause);
@@ -265,7 +294,10 @@ export class PlayScene extends Scene {
 
   private gainPoints(n: number, at: { x: number; y: number }): void {
     const extra = addPoints(this.lives, n);
-    if (extra > 0) this.fx.float('1UP!', at.x, at.y - 14, BASE.G);
+    if (extra > 0) {
+      this.fx.float('1UP!', at.x, at.y - 14, BASE.G);
+      this.app.audio.sfx('oneUp');
+    }
   }
 
   private crash(cause: string): void {
@@ -275,6 +307,7 @@ export class PlayScene extends Scene {
     this.fx.shake(4, 0.4);
     this.fx.flash('#ffffff', 0.55);
     this.stepAcc = 0;
+    this.app.audio.sfx('crash');
     if (this.isClassic) {
       this.best = Math.max(this.best, this.world.points);
       this.setState('dead');
@@ -283,9 +316,11 @@ export class PlayScene extends Scene {
     this.livesLostThisFight++;
     if (cause === 'boss' && this.level.hint) this.hintTime = 3;
     if (loseLife(this.lives) === 'out') {
+      this.app.audio.jingle('jingle-game-over');
       this.setState('out');
       return;
     }
+    this.app.audio.sfx('lifeLost');
     this.respawn();
   }
 
@@ -305,13 +340,16 @@ export class PlayScene extends Scene {
       const c = this.cellCenter(e.at);
       switch (e.type) {
         case 'telegraph':
+          this.app.audio.sfx('telegraph');
           this.fx.burst(c.x, c.y, ['#9a6a3e', '#5a3622'], 6, 30, { gravity: 120, life: 0.4 });
           break;
         case 'surface':
           this.fx.burst(c.x, c.y, ['#9a6a3e', '#5a3622', '#c2c3c7'], 10, 50, { gravity: 160 });
           this.fx.shake(1, 0.1);
+          this.app.audio.sfx('surface');
           break;
         case 'coiled':
+          this.app.audio.sfx('coilHit');
           this.pocketFx = { cells: e.pocket, t: 0 };
           this.fx.burst(c.x, c.y, [BASE.Y, BASE.W, BASE.G, BASE.h], 30, 110);
           this.fx.float('COIL!', c.x, c.y - 10, BASE.Y);
@@ -323,6 +361,9 @@ export class PlayScene extends Scene {
           this.fx.burst(c.x, c.y, [BASE.Y, BASE.W, BASE.R, BASE.O, BASE.G], 60, 140, { life: 0.9 });
           this.fx.shake(5, 0.6);
           this.fx.flash('#ffffff', 0.7);
+          this.app.audio.sfx('bossDefeat');
+          this.app.audio.music(null);
+          setTimeout(() => this.app.audio.jingle('jingle-victory'), 700);
           this.setState('won');
           break;
         default:
@@ -461,11 +502,6 @@ export class PlayScene extends Scene {
         r.text(this.level.title, cx, cy - 8, { align: 'center', color: BASE.Y });
         if (blink) r.text(L.touch ? 'TAP AN ARROW' : 'PRESS A DIRECTION', cx, cy + 3, { align: 'center' });
       }
-    } else if (this.state === 'dead' && this.stateTime > 0.5) {
-      r.panel(cx - pw / 2, cy - 22, pw, 44);
-      r.text('GAME OVER', cx, cy - 15, { align: 'center', color: BASE.R });
-      r.text(`SCORE ${this.world.points}`, cx, cy - 3, { align: 'center' });
-      if (blink) r.text(L.touch ? 'TAP TO RETRY' : 'PRESS ENTER', cx, cy + 9, { align: 'center', color: '#c2c3c7' });
     } else if (this.state === 'out' && this.stateTime > 0.5) {
       r.panel(cx - pw / 2, cy - 22, pw, 44);
       r.text('OUT OF LIVES', cx, cy - 15, { align: 'center', color: BASE.R });
@@ -491,5 +527,7 @@ export class PlayScene extends Scene {
       lines.forEach((l, i) => r.text(l, cx, y + 4 + i * 10, { align: 'center', color: BASE.Y, alpha: a }));
     }
     if (this.invincible) r.text('INVINCIBLE', L.boardX + 2, L.boardY + 2, { color: BASE.C, size: 8 });
+    this.musicBtn.place(L.w);
+    this.musicBtn.draw(r, this.app.musicOn);
   }
 }

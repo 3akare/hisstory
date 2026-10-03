@@ -20,6 +20,8 @@ export interface LevelConfig {
   boss?: BossId;
   /** One-line tip shown at the start. */
   hint?: string;
+  /** Song name (audio/tracks). */
+  music: string;
 }
 
 export const CLASSIC_LEVEL: LevelConfig = {
@@ -31,6 +33,7 @@ export const CLASSIC_LEVEL: LevelConfig = {
   startLength: 4,
   fruitCount: 1,
   stepMs: 135,
+  music: 'orchard',
 };
 
 export function bossLevel(id: BossId): LevelConfig {
@@ -48,6 +51,7 @@ export function bossLevel(id: BossId): LevelConfig {
         fruitCount: 2,
         stepMs: 150,
         boss: 'grub',
+        music: 'boss-grub',
         hint: "YOU CAN'T EAT HIM.\nCOIL AROUND HIM!",
       };
   }

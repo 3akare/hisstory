@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { canvasIsDrawn, info } from './helpers';
 
 test('classic: the snake moves, then crashes into the wall and shows game over', async ({ page }, testInfo) => {
-  await page.goto('/?debug=1&seed=3');
+  await page.goto('/?debug=1&scene=classic&seed=3');
   await expect.poll(async () => (await info(page)).scene).toBe('play');
   expect(await canvasIsDrawn(page)).toBe(true);
   expect((await info(page)).state).toBe('ready');
@@ -26,8 +26,10 @@ test('classic: the snake moves, then crashes into the wall and shows game over',
 
   // Heading right from x=8 hits the wall within ~16 steps.
   await expect.poll(async () => (await info(page)).state, { timeout: 8000 }).toBe('dead');
-  await page.waitForTimeout(700);
+  await expect.poll(async () => (await info(page)).top).toBe('gameover');
+  await page.waitForTimeout(500);
   await page.screenshot({ path: testInfo.outputPath('gameover.png') });
-  await page.keyboard.press('Enter');
+  await page.keyboard.press('Enter'); // RETRY
   await expect.poll(async () => (await info(page)).state).toBe('ready');
+  expect((await info(page)).top).toBe('play');
 });

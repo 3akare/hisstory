@@ -2,6 +2,7 @@ import '@fontsource/press-start-2p/400.css';
 import '@fontsource/pixelify-sans/400.css';
 import { App } from './app';
 import { PlayScene } from './scenes/PlayScene';
+import { HomeScene } from './scenes/HomeScene';
 import { bossLevel, CLASSIC_LEVEL } from './game/level';
 import { Grub } from './game/bosses/grub';
 import { installDebug } from './debug/debug';
@@ -23,16 +24,28 @@ async function boot(): Promise<void> {
     /* fonts are a nicety; keep going */
   }
   const app = new App(canvas);
+  // Debug shortcuts: ?debug=1&boss=grub, ?debug=1&scene=classic
   const bossParam = app.debug ? app.params.get('boss') : null;
-  const play = new PlayScene(app, bossParam === 'grub' ? bossLevel('grub') : CLASSIC_LEVEL);
-  app.scenes.go(play, true);
+  const sceneParam = app.debug ? app.params.get('scene') : null;
+  if (bossParam === 'grub') app.scenes.go(new PlayScene(app, bossLevel('grub')), true);
+  else if (sceneParam === 'classic') app.scenes.go(new PlayScene(app, CLASSIC_LEVEL), true);
+  else app.scenes.go(new HomeScene(app), true);
   installDebug(app);
   app.loop.start();
   canvas.focus();
 
   window.__HISSTORY__ = () => {
     const s = app.scenes.current;
-    const info: Record<string, unknown> = { scene: s?.name, top: app.scenes.top?.name, layout: app.renderer.layout };
+    const info: Record<string, unknown> = {
+      scene: s?.name,
+      top: app.scenes.top?.name,
+      layout: app.renderer.layout,
+      music: app.audio.current,
+      musicOn: app.musicOn,
+      audio: app.audio.ctx?.state ?? 'locked',
+      best: app.save.data.classic.best,
+      saveAvailable: app.save.available,
+    };
     if (s instanceof PlayScene) {
       info.state = s.state;
       info.length = s.world.snake.cells.length;

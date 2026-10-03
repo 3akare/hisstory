@@ -110,6 +110,11 @@ export class SceneManager implements InputHandler {
 
   // Input goes to the top scene, but not mid-transition.
   onAction(a: Action, repeat: boolean): void {
+    // M toggles music anywhere.
+    if (a === 'mute') {
+      if (!repeat) this.app.toggleMusic();
+      return;
+    }
     if (!this.transitioning) this.top?.onAction?.(a, repeat);
   }
   onAnyKey(): void {
