@@ -53,7 +53,7 @@ export class ChapterMapScene extends Scene {
     private onPlay: (id: number) => void = () => {},
   ) {
     super(app);
-    this.selected = focus ?? suggestedChapter(app.save.data.story);
+    this.selected = focus ?? app.save.data.story.resume?.chapter ?? suggestedChapter(app.save.data.story);
   }
 
   enter(): void {
@@ -235,17 +235,26 @@ export class ChapterMapScene extends Scene {
       status = c.boss ? 'BOSS FIGHT!' : 'READY';
       color = c.boss ? BASE.R : BASE.Y;
     }
+    if (this.story.resume?.chapter === c.id && open) {
+      status = 'SAVED GAME: PICK UP WHERE YOU LEFT OFF';
+      color = BASE.C;
+    }
+    if (!this.app.save.available) {
+      status = "PROGRESS WON'T BE SAVED IN THIS BROWSER";
+      color = BASE.R;
+    }
     if (this.nope > 0) {
       status = !c.available ? 'NOT BUILT YET!' : 'LOCKED!';
       color = BASE.R;
     }
     r.text(status, 10, y + (L.portrait ? 20 : 18), { color, font: 'dialog', size: 8 });
     // PLAY button.
-    const bw = 44;
+    const saved = this.story.resume?.chapter === c.id;
+    const bw = saved && open ? 56 : 44;
     this.playRect = L.portrait ? { x: L.w - bw - 10, y: y + h - 22, w: bw, h: 16 } : { x: L.w - bw - 10, y: y + 8, w: bw, h: 16 };
     if (open) {
-      r.panel(this.playRect.x, this.playRect.y, bw, 16, '#2a2046', BASE.Y);
-      r.text('PLAY', this.playRect.x + bw / 2, this.playRect.y + 4, { align: 'center', color: BASE.Y });
+      r.panel(this.playRect.x, this.playRect.y, bw, 16, '#2a2046', saved ? BASE.C : BASE.Y);
+      r.text(saved ? 'GO ON' : 'PLAY', this.playRect.x + bw / 2, this.playRect.y + 4, { align: 'center', color: saved ? BASE.C : BASE.Y });
     }
   }
 }

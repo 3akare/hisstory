@@ -21,11 +21,17 @@ export function playChapter(app: App, id: number, skipIntro = false): void {
   const ch = chapter(id);
   const story = app.save.data.story;
   story.started = true;
+  // A saved mid-level game for this chapter? Pick up exactly where you left off.
+  const resume = story.resume && story.resume.chapter === id ? story.resume.data : undefined;
+  if (!resume) story.resume = null;
   app.save.save();
   const start = () =>
     app.scenes.go(
       new PlayScene(app, ch.level(), story, {
         chapterId: id,
+        resume,
+        onQuit: () => openMap(app, id),
+        onRestart: () => playChapter(app, id, true),
         onWin: () => {
           const next = completeChapter(story, id);
           story.resume = null;
@@ -43,6 +49,6 @@ export function playChapter(app: App, id: number, skipIntro = false): void {
       }),
     );
   const intro = SCRIPT[id]?.intro ?? [];
-  if (intro.length && !skipIntro) app.scenes.go(new CutsceneScene(app, intro, ch.biome, start, 'map'));
+  if (intro.length && !skipIntro && !resume) app.scenes.go(new CutsceneScene(app, intro, ch.biome, start, 'map'));
   else start();
 }

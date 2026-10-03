@@ -49,7 +49,7 @@ Build mode: fast
   Learner check: Start Story from a fresh save (debug "reset save"), play Ch1 and beat Grub, and lose all your lives once on purpose. Does the story land, and does the checkpoint feel fair?
   Commit: `Story mode Milestone 1: map, cutscenes, Ch1 and Grub with checkpoints`
 
-- [ ] **5. Save everything, pause and resume, and deploy pipeline**
+- [x] **5. Save everything, pause and resume, and deploy pipeline**
   Becomes usable: Close the tab mid-level and reopen it: the map offers "Resume Chapter N", which comes back paused with a 3-2-1. Switching tabs auto-pauses. The pause menu works (Resume, Restart, Quit, music). Private-mode or blocked storage shows "progress won't be saved" instead of crashing. `npm run build` produces a deployable site, and a GitHub Actions workflow (tests → build → Pages) is ready.
   Why now: The learner asked to "save game states like mad". Snapshots need every system built so far to be plain data, so it's cheapest to lock in before more bosses arrive. Milestone 1 becomes deployable.
   PRD ref: `prd.md > Story: Chapter Map and Progress`, `prd.md > States and Boundaries`
@@ -130,3 +130,4 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 - Added `src/engine/ui.ts` (canvas-drawn menus and the speaker button) and `src/audio/tracks/core.ts` + `index.ts` (songs as note data, looked up by name). The spec named `audio/tracks/*.ts` but no shared menu widget. Home's STORY button opens the Grub fight until slice 4 adds the chapter map. The M key toggles music anywhere, and Escape returns Home until the slice 5 pause menu.
 - Added `src/scenes/story.ts` (how Story's screens connect: map → intro → play → outro / out of lives) and `normalizeCheckpoint` in `progress.ts`. In Milestone 1 nothing exists after Grub yet, so his checkpoint stays on Ch3. It moves forward automatically once Act II is built, so saves made now keep working. Unbuilt chapters show as "?" (coming soon) and are skipped in the unlock chain. Portraits are 16×16 drawn at 2× (chunky, quicker to author) instead of 32×32.
 - Input is now only blocked while a screen fades *out*, not while the next one fades in (a test showed the map ignoring Enter for a moment). Running out of lives goes straight to one Out of Lives screen; before, the play screen also drew its own box first.
+- Added `src/game/snapshot.ts` so mid-level saves are pure functions with their own unit test (a mid-Grub-fight snapshot replays identically after JSON), and `src/scenes/PauseScene.ts`. Escape and P now pause instead of quitting (Quit and Map are in the pause menu), and a pause button sits next to the music button for touch. A resumed game opens on a "WELCOME BACK" pause menu, and Resume runs the 3-2-1.

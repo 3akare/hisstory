@@ -27,6 +27,12 @@ export class App {
     this.input.onFirstGesture(() => this.audio.unlock());
     this.scenes = new SceneManager(this);
     this.input.handler = this.scenes;
+    // Leaving the tab or closing the page: let the scene pause and save.
+    const hidden = () => this.scenes.current?.onHidden();
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) hidden();
+    });
+    window.addEventListener('pagehide', hidden);
     this.loop = new GameLoop({
       update: (dt) => this.scenes.update(dt),
       render: () => this.scenes.draw(),

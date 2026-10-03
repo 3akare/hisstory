@@ -18,6 +18,8 @@ export abstract class Scene implements InputHandler {
   /** Called when an overlay above this scene is removed. */
   resume(): void {}
   update(_dt: number): void {}
+  /** The tab was hidden or the page is closing (save, pause). */
+  onHidden(): void {}
   abstract draw(): void;
 
   onAction?(action: Action, repeat: boolean): void;

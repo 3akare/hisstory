@@ -15,20 +15,25 @@ import { LevelConfig } from '../game/level';
 import { addPoints, COIL_POINTS, freshLives, LivesState, loseLife, mercyLevel } from '../game/lives';
 import { placeSnake, queueTurn } from '../game/snake';
 import { classicStepMs, World, WorldEvent } from '../game/world';
+import { LevelSnapshot, restoreLevel, snapshotLevel } from '../game/snapshot';
 import { drawBoard, drawFruit, drawSnake, PIP_LOOK, WHITE_LOOK } from './draw';
 import { drawBoss } from './bossDraw';
 import { drawDpad, drawHudBar, drawMeter } from './hud';
 import { MusicButton } from '../engine/ui';
 import { GameOverScene } from './GameOverScene';
 import { HomeScene } from './HomeScene';
-import { openMap } from './story';
+import { PauseScene } from './PauseScene';
 
-export type PlayState = 'ready' | 'playing' | 'dead' | 'out' | 'won';
+export type PlayState = 'ready' | 'countdown' | 'playing' | 'dead' | 'out' | 'won';
 
 /** Seconds after a respawn during which bosses and hazards can't hurt you. */
 const GHOST_TIME = 1.2;
 /** How long the "lost a life" blink lasts before you can steer again. */
 const RESPAWN_BLINK = 0.9;
+/** "3-2-1" after resuming. */
+const COUNTDOWN = 1.5;
+/** Story levels save a snapshot this often while playing. */
+const AUTOSAVE_EVERY = 3;
 
 export interface PlayHooks {
   /** Story chapter number, if this is a Story level. */
@@ -37,6 +42,12 @@ export interface PlayHooks {
   onWin?(scene: PlayScene): void;
   /** Out of lives (Story). */
   onOut?(scene: PlayScene): void;
+  /** Leave to the map or home (from the pause menu). */
+  onQuit?(scene: PlayScene): void;
+  /** Restart this level from scratch. */
+  onRestart?(scene: PlayScene): void;
+  /** A saved snapshot to resume from. */
+  resume?: unknown;
 }
 
 export function createBoss(level: LevelConfig, world: World): BossController | null {
@@ -73,7 +84,11 @@ export class PlayScene extends Scene {
   private dpadPointer: number | null = null;
   showPockets = false;
   private musicBtn = new MusicButton();
+  private pauseRect = { x: 0, y: 0, w: 13, h: 12 };
   private gameOverShown = false;
+  private autosaveT = 0;
+  /** What state to go back to when the pause menu closes. */
+  private pausedFrom: PlayState | null = null;
 
   constructor(
     app: App,
@@ -96,6 +111,84 @@ export class PlayScene extends Scene {
   enter(): void {
     this.reset();
     this.app.audio.music(this.level.music);
+    if (this.hooks.resume !== undefined && this.restore(this.hooks.resume)) {
+      // Back from a saved game: open paused, so nothing happens until you're ready.
+      this.pausedFrom = 'playing';
+      // Frozen under the menu (no "press a direction" panel); RESUME runs the 3-2-1.
+      this.setState('countdown');
+      this.app.scenes.push(new PauseScene(this.app, this, 'WELCOME BACK'));
+    }
+  }
+
+  // ---- saving mid-level -----------------------------------------------------------
+
+  snapshot(): LevelSnapshot {
+    return snapshotLevel(this.world, this.boss, this.livesLostThisFight, this.hintTime);
+  }
+
+  /** Put a snapshot back. Returns false (and keeps a fresh level) if it doesn't look right. */
+  restore(data: unknown): boolean {
+    try {
+      const extra = restoreLevel(this.world, this.boss, data);
+      if (!extra) return false;
+      this.livesLostThisFight = extra.livesLost;
+      this.hintTime = extra.hint;
+      this.refreshBossRules();
+      return true;
+    } catch {
+      this.reset();
+      return false;
+    }
+  }
+
+  /** Story only: write the mid-level snapshot so closing the tab loses nothing. */
+  saveSnapshot(): void {
+    const id = this.hooks.chapterId;
+    if (!id) return;
+    if (this.state !== 'playing' && this.state !== 'ready' && this.state !== 'countdown') return;
+    this.app.save.data.story.resume = { chapter: id, data: this.snapshot() };
+    this.app.save.save();
+  }
+
+  private clearSnapshot(): void {
+    if (!this.hooks.chapterId) return;
+    this.app.save.data.story.resume = null;
+    this.app.save.save();
+  }
+
+  // ---- pause ----------------------------------------------------------------------
+
+  pause(): void {
+    if (this.state !== 'playing' && this.state !== 'ready' && this.state !== 'countdown') return;
+    if (this.app.scenes.top !== this) return;
+    this.pausedFrom = this.state === 'countdown' ? 'playing' : this.state;
+    this.saveSnapshot();
+    this.app.scenes.push(new PauseScene(this.app, this));
+  }
+
+  resumeFromPause(): void {
+    if (this.pausedFrom === 'playing') this.setState('countdown');
+    this.pausedFrom = null;
+  }
+
+  restartLevel(): void {
+    this.clearSnapshot();
+    if (this.hooks.onRestart) this.hooks.onRestart(this);
+    else {
+      this.app.scenes.pop();
+      this.reset();
+    }
+  }
+
+  quit(): void {
+    if (this.hooks.onQuit) this.hooks.onQuit(this);
+    else this.app.scenes.go(new HomeScene(this.app));
+  }
+
+  /** The tab was hidden or the page is closing: pause and save. */
+  onHidden(): void {
+    this.saveSnapshot();
+    this.pause();
   }
 
   reset(): void {
@@ -156,6 +249,10 @@ export class PlayScene extends Scene {
   // ---- input ---------------------------------------------------------------
 
   private steer(dir: Dir): void {
+    if (this.state === 'countdown') {
+      queueTurn(this.world.snake, dir);
+      return;
+    }
     if (this.state !== 'ready' && this.state !== 'playing') return;
     if (this.state === 'ready') {
       if (this.respawning && this.stateTime < RESPAWN_BLINK) return;
@@ -188,12 +285,9 @@ export class PlayScene extends Scene {
   }
 
   onAction(action: Action, repeat: boolean): void {
-    if (action === 'back' && !repeat) {
-      this.app.audio.sfx('menuBack');
-      if (this.hooks.chapterId) {
-        this.persist();
-        openMap(this.app, this.hooks.chapterId);
-      } else this.app.scenes.go(new HomeScene(this.app));
+    if ((action === 'back' || action === 'pause') && !repeat) {
+      if (this.state === 'dead' || this.state === 'won' || this.state === 'out') return;
+      this.pause();
       return;
     }
     if (this.state === 'dead' || this.state === 'won' || this.state === 'out') {
@@ -208,6 +302,11 @@ export class PlayScene extends Scene {
   onPointerDown(p: PointerInfo): void {
     if (this.musicBtn.hit(p.x, p.y)) {
       this.app.toggleMusic();
+      return;
+    }
+    const pr = this.pauseRect;
+    if (p.x >= pr.x - 3 && p.x < pr.x + pr.w + 3 && p.y >= pr.y - 2 && p.y < pr.y + pr.h + 4) {
+      this.pause();
       return;
     }
     if (this.state === 'dead' || this.state === 'won' || this.state === 'out') {
@@ -265,8 +364,14 @@ export class PlayScene extends Scene {
       this.gameOverShown = true;
       this.hooks.onOut(this);
     }
+    if (this.state === 'countdown' && this.stateTime >= COUNTDOWN) this.setState('playing');
     if (this.state !== 'playing') return;
 
+    this.autosaveT += dt;
+    if (this.autosaveT >= AUTOSAVE_EVERY) {
+      this.autosaveT = 0;
+      this.saveSnapshot();
+    }
     if (this.ghost > 0) this.ghost -= dt;
     if (this.boss) {
       this.handleBoss(this.boss.update(dt, this.bossWorld()));
@@ -317,8 +422,8 @@ export class PlayScene extends Scene {
     this.fx.shake(2, 0.3);
     this.app.audio.music(null);
     this.app.audio.jingle('jingle-clear');
-    this.persist();
     this.setState('won');
+    this.clearSnapshot();
   }
 
   private gainPoints(n: number, at: { x: number; y: number }): void {
@@ -350,6 +455,7 @@ export class PlayScene extends Scene {
     if (result === 'out') {
       this.app.audio.jingle('jingle-game-over');
       this.setState('out');
+      this.clearSnapshot();
       return;
     }
     this.app.audio.sfx('lifeLost');
@@ -397,6 +503,7 @@ export class PlayScene extends Scene {
           this.app.audio.music(null);
           setTimeout(() => this.app.audio.jingle('jingle-victory'), 700);
           this.setState('won');
+          this.clearSnapshot();
           break;
         default:
           break;
@@ -474,7 +581,8 @@ export class PlayScene extends Scene {
     drawFruit(r, this.world.fruits, this.t, this.level.biome);
     if (this.boss) drawBoss(r, this.boss, this.t, this.world.snake.cells);
 
-    const alpha = this.state === 'playing' ? Math.min(1, this.stepAcc / this.stepMs) : this.state === 'ready' && !this.respawning ? 1 : 0;
+    const alpha =
+      this.state === 'playing' || this.state === 'countdown' ? Math.min(1, this.stepAcc / this.stepMs) : this.state === 'ready' && !this.respawning ? 1 : 0;
     let look = PIP_LOOK;
     const blinking =
       (this.state === 'dead' && this.stateTime < 0.8) ||
@@ -582,5 +690,14 @@ export class PlayScene extends Scene {
     if (this.invincible) r.text('INVINCIBLE', L.boardX + 2, L.boardY + 2, { color: BASE.C, size: 8 });
     this.musicBtn.place(L.w);
     this.musicBtn.draw(r, this.app.musicOn);
+    // Pause button, left of the music button.
+    this.pauseRect = { x: L.w - 31, y: 2, w: 13, h: 12 };
+    r.rect(this.pauseRect.x, 2, 13, 12, '#0b0b14', 0.5);
+    r.sprite('pauseIcon', SPRITES.pauseIcon, this.pauseRect.x + 4, 4);
+    if (this.state === 'countdown') {
+      // 3, 2, 1, each for a third of the countdown.
+      const n = Math.max(1, 3 - Math.floor((this.stateTime / COUNTDOWN) * 3));
+      r.text(String(n), L.boardX + BOARD_PX_W / 2, L.boardY + BOARD_PX_H / 2 - 8, { align: 'center', size: 16, color: BASE.Y });
+    }
   }
 }
