@@ -44,7 +44,7 @@ export class World {
   reserved: (x: number, y: number) => boolean = () => false;
   /** Keep fruit at least this far from this cell (bosses). */
   avoid: { cell: Cell; dist: number } | undefined;
-  readonly fruitCount: number;
+  fruitCount: number;
   readonly startHead: Cell;
   readonly startDir: Dir;
 

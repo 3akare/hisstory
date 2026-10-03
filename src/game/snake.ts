@@ -75,3 +75,42 @@ export function occupies(snake: Snake, c: Cell, ignoreTail = false): boolean {
   }
   return false;
 }
+
+/**
+ * Lay a snake of `length` out from `head`, body trailing away from `dir`.
+ * When the body hits something it folds back and forth (serpentine), so a long
+ * snake can respawn at the level start without overlapping walls or itself.
+ */
+export function placeSnake(head: Cell, dir: Dir, length: number, blocked: (x: number, y: number) => boolean): Snake {
+  const cells: Cell[] = [{ ...head }];
+  const taken = (c: Cell) => blocked(c.x, c.y) || cells.some((s) => s.x === c.x && s.y === c.y);
+  let back: Dir = OPPOSITE[dir];
+  const perps: Dir[] = dir === 'L' || dir === 'R' ? ['U', 'D'] : ['L', 'R'];
+  const room = (p: Dir) => {
+    let n = 0;
+    let c = add(head, p);
+    while (!blocked(c.x, c.y) && n < 30) {
+      n++;
+      c = add(c, p);
+    }
+    return n;
+  };
+  // Fold towards the side with more space.
+  const fold: Dir = room(perps[0]) >= room(perps[1]) ? perps[0] : perps[1];
+  let cur = head;
+  while (cells.length < length) {
+    const straight = add(cur, back);
+    if (!taken(straight)) {
+      cells.push(straight);
+      cur = straight;
+      continue;
+    }
+    const side = add(cur, fold);
+    if (taken(side)) break;
+    cells.push(side);
+    cur = side;
+    back = OPPOSITE[back];
+  }
+  const snake: Snake = { cells, dir, grow: length - cells.length, prevTail: { ...cells[cells.length - 1] }, queue: [] };
+  return snake;
+}

@@ -19,7 +19,7 @@ Build mode: fast
   Learner check: Run `npm run dev`, open the localhost link, and play a few rounds. Does the movement feel snappy and smooth, and do the pixels look crisp?
   Commit: `Playable Classic snake on canvas with fixed-timestep loop`
 
-- [ ] **2. You can beat Grub by coiling around him**
+- [x] **2. You can beat Grub by coiling around him**
   Becomes usable: Open `?debug=1&boss=grub` to drop straight into the Grub arena. Dirt shakes at a hole, then Grub pops up. Wrap your body around him (walls count) before he burrows to knock a notch off his health bar, with a flash, shake and hit sound. Touching him costs one of your 3 hearts: you flash and respawn at the start, keeping your length. After 3 coils he's defeated.
   Why now: Coil to conquer is the kernel and the biggest design risk (does the flood-fill coil feel fair and fun?). It comes before menus, music or story, so early feedback can shape every later boss.
   PRD ref: `prd.md > Story: Coil to Conquer (Boss Fights)`, `prd.md > Boss Design and Difficulty`, `prd.md > Story: Lives and Checkpoints (learner's design)`
@@ -124,3 +124,5 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 ## Revisions
 - Added `src/game/world.ts` (one level's rules: board + snake + fruit + score, returning events), and `src/scenes/draw.ts` / `src/scenes/hud.ts` (shared board, snake, HUD and d-pad drawing). The spec's file tree had no single home for the step logic or for drawing shared across scenes. This is an internal structure change only.
 - Playwright uses the installed Google Chrome locally (`channel: 'chrome'`) and Playwright's Chromium in CI, and `@types/node` was added for the config. TypeScript 7 works with Vite 8 and Vitest 5, so the 5.9 fallback wasn't needed.
+- Debug invincibility also auto-steers away from walls. The e2e test showed that "bosses can't hurt you" alone still lets the snake die on a wall and freeze the fight, which blocks testing and demo recording.
+- Boss timers run on the fixed 1/120 s update, not on snake steps. The fixed timestep already makes them deterministic, and seconds map directly onto the PRD's tuning numbers.

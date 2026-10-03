@@ -2,6 +2,9 @@ import '@fontsource/press-start-2p/400.css';
 import '@fontsource/pixelify-sans/400.css';
 import { App } from './app';
 import { PlayScene } from './scenes/PlayScene';
+import { bossLevel, CLASSIC_LEVEL } from './game/level';
+import { Grub } from './game/bosses/grub';
+import { installDebug } from './debug/debug';
 import { FONT_DIALOG, FONT_PIXEL } from './engine/renderer';
 
 declare global {
@@ -20,8 +23,10 @@ async function boot(): Promise<void> {
     /* fonts are a nicety; keep going */
   }
   const app = new App(canvas);
-  const play = new PlayScene(app);
+  const bossParam = app.debug ? app.params.get('boss') : null;
+  const play = new PlayScene(app, bossParam === 'grub' ? bossLevel('grub') : CLASSIC_LEVEL);
   app.scenes.go(play, true);
+  installDebug(app);
   app.loop.start();
   canvas.focus();
 
@@ -34,6 +39,10 @@ async function boot(): Promise<void> {
       info.points = s.world.points;
       info.head = s.world.snake.cells[0];
       info.dir = s.world.snake.dir;
+      info.lives = s.lives.lives;
+      info.score = s.lives.score;
+      if (s.boss) info.bossHealth = s.boss.bars().map((b) => b.health);
+      if (s.boss instanceof Grub) info.bossMode = s.boss.s.mode;
     }
     return info;
   };
