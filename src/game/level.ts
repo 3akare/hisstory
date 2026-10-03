@@ -1,7 +1,7 @@
 import type { BiomeId } from '../art/palettes';
 import { Cell, Dir } from './board';
 import type { BossId } from './bosses/bossKit';
-import { GRUB, MIRA_GRUB_MAP } from './bosses/tuning';
+import { GRUB, MIRA_GRUB_MAP, VIPER_MAP } from './bosses/tuning';
 import type { TwistId } from './twists';
 
 /** Everything PlayScene needs to set up one level. */
@@ -27,6 +27,8 @@ export interface LevelConfig {
   twists?: TwistId[];
   /** Ice patch cells (Ch4). */
   ice?: Cell[];
+  /** Gate cells that open and close (Ch8). */
+  gates?: Cell[];
 }
 
 export const CLASSIC_LEVEL: LevelConfig = {
@@ -57,6 +59,21 @@ export function bossLevel(id: BossId): LevelConfig {
         boss: 'miraGrub',
         music: 'boss-mira',
         hint: 'CIRCLE EITHER MOLE!\nBOTH BARS MUST FALL',
+      };
+    case 'viper':
+      return {
+        kind: 'boss',
+        title: 'VIPER',
+        biome: 'sky',
+        map: VIPER_MAP,
+        start: { x: 2, y: 12 },
+        startDir: 'R',
+        startLength: 10,
+        fruitCount: 2,
+        stepMs: 145,
+        boss: 'viper',
+        music: 'boss-viper',
+        hint: 'MAKE HER CRASH INTO YOU,\nTHEN CIRCLE HER HEAD!',
       };
     case 'grub':
     default:

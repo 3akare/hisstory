@@ -104,7 +104,84 @@ export class PortalTwist implements Twist {
   }
 }
 
-export function createTwists(ids: readonly TwistId[] = [], level: { ice?: Cell[] } = {}): Twist[] {
+/** SPEED RAMP (Ch7 Neon Caves): every fruit makes you a little faster, up to a limit. */
+export const RAMP_PER_FRUIT = 0.022;
+export const RAMP_MIN_SCALE = 0.62;
+
+export class SpeedRampTwist implements Twist {
+  readonly id = 'speedRamp' as const;
+  stepScale(world: World): number {
+    return Math.max(RAMP_MIN_SCALE, 1 - world.eaten * RAMP_PER_FRUIT);
+  }
+}
+
+/**
+ * WALL GAPS (Ch8 Sky Temple): golden gates in the walls open and close.
+ * They blink before shutting, and a gate never shuts on any part of Pip.
+ */
+export const GATE_OPEN_TIME = 4;
+export const GATE_CLOSED_TIME = 4;
+export const GATE_WARN = 1.2;
+
+export class WallGapsTwist implements Twist {
+  readonly id = 'wallGaps' as const;
+  readonly cells: Cell[];
+  private keys: Set<number>;
+  open = true;
+  timer = GATE_OPEN_TIME;
+
+  constructor(gates: readonly Cell[]) {
+    this.cells = gates.map((c) => ({ ...c }));
+    this.keys = new Set(gates.map((c) => cellKey(c.x, c.y)));
+  }
+
+  isGate(x: number, y: number): boolean {
+    return this.keys.has(cellKey(x, y));
+  }
+
+  /** Blinking: about to close. */
+  get warning(): boolean {
+    return this.open && this.timer <= GATE_WARN;
+  }
+
+  update(dt: number, world: World): void {
+    this.timer -= dt;
+    if (this.timer > 0) return;
+    if (this.open) {
+      // Never close on Pip: wait until he's clear of every gate.
+      if (world.snake.cells.some((c) => this.isGate(c.x, c.y))) {
+        this.timer = 0.1;
+        return;
+      }
+      this.open = false;
+      this.timer = GATE_CLOSED_TIME;
+    } else {
+      this.open = true;
+      this.timer = GATE_OPEN_TIME;
+    }
+  }
+
+  blockers(): Blocker[] {
+    if (this.open) return [];
+    return [{ cause: 'wall', hits: (c) => this.isGate(c.x, c.y) }];
+  }
+
+  reserved(x: number, y: number): boolean {
+    return this.isGate(x, y);
+  }
+
+  snapshot(): unknown {
+    return { open: this.open, timer: this.timer };
+  }
+
+  restore(data: unknown): void {
+    const d = data as { open?: boolean; timer?: number };
+    if (typeof d?.open === 'boolean') this.open = d.open;
+    if (typeof d?.timer === 'number') this.timer = d.timer;
+  }
+}
+
+export function createTwists(ids: readonly TwistId[] = [], level: { ice?: Cell[]; gates?: Cell[] } = {}): Twist[] {
   return ids.flatMap((id): Twist[] => {
     switch (id) {
       case 'poison':
@@ -115,6 +192,10 @@ export function createTwists(ids: readonly TwistId[] = [], level: { ice?: Cell[]
         return [new FogTwist()];
       case 'portal':
         return [new PortalTwist()];
+      case 'speedRamp':
+        return [new SpeedRampTwist()];
+      case 'wallGaps':
+        return [new WallGapsTwist(level.gates ?? [])];
       default:
         return [];
     }

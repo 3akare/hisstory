@@ -218,6 +218,92 @@ export const BOSS_MIRA: Song = {
   drums: [mGroove, mGroove, mGroove, mGroove, mGroove, mGroove, mGroove, 'k k s . k k s . s s s s c . . .'],
 };
 
+const oct = (lo: string, hi: string) => Array(8).fill(`${lo} ${hi}`).join(' ');
+const nEm = 'E4 G4 B4 E5 B4 G4 E4 G4 B4 E5 B4 G4 E4 G4 B4 E5';
+const nG = 'G4 B4 D5 G5 D5 B4 G4 B4 D5 G5 D5 B4 G4 B4 D5 G5';
+const nD = 'D4 F#4 A4 D5 A4 F#4 D4 F#4 A4 D5 A4 F#4 D4 F#4 A4 D5';
+const nC = 'C4 E4 G4 C5 G4 E4 C4 E4 G4 C5 G4 E4 C4 E4 G4 C5';
+const nAm = 'A3 C4 E4 A4 E4 C4 A3 C4 E4 A4 E4 C4 A3 C4 E4 A4';
+
+/** NEON CAVES (Ch7). Retro synthwave in E minor: pumping octave bass, sparkling arps. */
+export const NEON: Song = {
+  name: 'neon',
+  bpm: 136,
+  leadWave: 'pulse25',
+  harmonyWave: 'pulse12',
+  mix: { lead: 0.08, harmony: 0.03, bass: 0.14, drums: 0.09 },
+  lead: [
+    'E5 - - B4 E5 - G5 - F#5 - - D5 E5 - - -',
+    'B4 - - G4 B4 - D5 - C5 - B4 - A4 - - -',
+    'E5 - - B4 E5 - G5 - A5 - - G5 F#5 - E5 -',
+    'D5 - E5 - F#5 - D5 - B4 - - - . . . .',
+    'G5 - - - F#5 - - - E5 - - - D5 - - -',
+    'C5 - D5 - E5 - G5 - F#5 - - - - - . .',
+    'G5 - A5 - B5 - - A5 G5 - F#5 - E5 - D5 -',
+    'E5 - - - - - - - . . . . . . . .',
+  ],
+  harmony: [nEm, nG, nEm, nD, nC, nAm, nG, nEm],
+  bass: [oct('E2', 'E3'), oct('G1', 'G2'), oct('E2', 'E3'), oct('D2', 'D3'), oct('C2', 'C3'), oct('A1', 'A2'), oct('G1', 'G2'), oct('E2', 'E3')],
+  drums: ['k . h . s . h . k . h . s . o .'],
+};
+
+const skG = 'G4 . B4 . D5 . B4 . G4 . B4 . D5 . B4 .';
+const skD = 'F#4 . A4 . D5 . A4 . F#4 . A4 . D5 . A4 .';
+const skC = 'E4 . G4 . C5 . G4 . E4 . G4 . C5 . G4 .';
+const skEm = 'E4 . G4 . B4 . G4 . E4 . G4 . B4 . G4 .';
+const skAm = 'E4 . A4 . C5 . A4 . E4 . A4 . C5 . A4 .';
+const sbG = 'G2 . . . D3 . . . G2 . . . D3 . . .';
+const sbD = 'D2 . . . A2 . . . D2 . . . A2 . . .';
+const sbC = 'C3 . . . G2 . . . C3 . . . G2 . . .';
+const sbEm = 'E2 . . . B2 . . . E2 . . . B2 . . .';
+const sbAm = 'A2 . . . E3 . . . A2 . . . E3 . . .';
+
+/** SKY TEMPLE (Ch8). Airy G major, long floating notes above the clouds. */
+export const SKY: Song = {
+  name: 'sky',
+  bpm: 100,
+  leadWave: 'pulse50',
+  harmonyWave: 'pulse12',
+  mix: { lead: 0.08, harmony: 0.03, bass: 0.12, drums: 0.05 },
+  lead: [
+    'D5 - - - G5 - - - B5 - - - A5 - G5 -',
+    'F#5 - - - E5 - - - D5 - - - - - - -',
+    'E5 - - - A5 - - - C6 - - - B5 - A5 -',
+    'G5 - - - F#5 - - - A5 - - - - - - -',
+    'B5 - - - D6 - - - G6 - - - F#6 - E6 -',
+    'D6 - - - B5 - - - G5 - - - - - - -',
+    'C6 - - - B5 - - - A5 - - - G5 - F#5 -',
+    'G5 - - - - - - - . . . . . . . .',
+  ],
+  harmony: [skG, skD, skAm, skD, skG, skEm, skC, skG],
+  bass: [sbG, sbD, sbAm, sbD, sbG, sbEm, sbC, sbG],
+  drums: ['k . . . h . . . s . . . h . . .'],
+};
+
+const vb = (lo: string, hi: string) => `${lo} . ${hi} ${lo} . ${hi} ${lo} . ${lo} . ${hi} ${lo} . ${hi} ${lo} .`;
+
+/** VIPER (Ch9). A fast duel in A minor: her slithering chromatic call, Pip's orchard answer. */
+export const BOSS_VIPER: Song = {
+  name: 'boss-viper',
+  bpm: 168,
+  leadWave: 'pulse25',
+  harmonyWave: 'pulse12',
+  mix: { lead: 0.085, harmony: 0.03, bass: 0.15, drums: 0.1 },
+  lead: [
+    'A5 G#5 A5 . C6 . B5 . A5 . E5 . . . . .',
+    'C5 . E5 . G5 . E5 . A5 - - - . . . .',
+    'A5 G#5 A5 . D6 . C6 . B5 . G#5 . . . . .',
+    'B4 . D5 . F5 . D5 . E5 - - - . . . .',
+    'E6 . D6 . C6 . B5 . C6 . B5 . A5 . G#5 .',
+    'A5 . G5 . F5 . E5 . F5 . E5 . D5 . C5 .',
+    'B4 . C5 . D5 . E5 . F5 . G#5 . A5 . B5 .',
+    'C6 - - - B5 - - - A5 - - - E5 - - -',
+  ],
+  harmony: ['. A4 . C5 . E5 . C5 . A4 . C5 . E5 . C5'],
+  bass: [vb('A1', 'A2'), vb('C2', 'C3'), vb('D2', 'D3'), vb('E1', 'E2'), vb('A1', 'A2'), vb('F1', 'F2'), vb('E1', 'E2'), vb('A1', 'A2')],
+  drums: ['k . s . k . s . k . s . k k s .'],
+};
+
 /** THE MAP. A light, adventurous march in G. */
 export const MAP: Song = {
   name: 'map',

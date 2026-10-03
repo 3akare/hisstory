@@ -2,6 +2,9 @@ import { SpriteDef, SPRITES } from '../art/sprites';
 import type { BossController } from '../game/bosses/bossKit';
 import { Grub } from '../game/bosses/grub';
 import { MiraGrub } from '../game/bosses/miraGrub';
+import { Viper } from '../game/bosses/viper';
+import { VIPER } from '../game/bosses/tuning';
+import { drawSnake, SnakeLook } from './draw';
 import type { Cell } from '../game/board';
 import { COIL_DEGREES, windingDegrees } from '../game/coil';
 import { Renderer, TILE } from '../engine/renderer';
@@ -11,6 +14,9 @@ export function drawBoss(r: Renderer, boss: BossController, t: number, snake: re
   if (boss instanceof Grub) {
     drawGrub(r, boss, t);
     if (boss.s.mode === 'up' && boss.holeCell) drawCoilRing(r, boss.holeCell, windingDegrees(snake, boss.holeCell), t);
+  } else if (boss instanceof Viper) {
+    drawViper(r, boss, t);
+    if (boss.present && boss.v.mode !== 'hit') drawCoilRing(r, boss.head, windingDegrees(snake, boss.head), t);
   } else if (boss instanceof MiraGrub) {
     drawGrub(r, boss.grub, t);
     if (boss.grub.s.mode === 'up' && boss.grub.holeCell) drawCoilRing(r, boss.grub.holeCell, windingDegrees(snake, boss.grub.holeCell), t);
@@ -85,6 +91,44 @@ export function drawGrub(r: Renderer, g: Grub, t: number): void {
     }
     default:
       break;
+  }
+}
+
+export const VIPER_LOOK: SnakeLook = { body: '#2fd6a0', outline: '#0e4d3f', stripe: '#a6f5dc', spot: '#167a63', eye: '#ffd94a' };
+
+export function drawViper(r: Renderer, b: Viper, t: number): void {
+  const { boardX: ox, boardY: oy } = r.layout;
+  const v = b.v;
+  if (v.mode === 'defeated' || v.mode === 'gone') return;
+  if (v.mode === 'arrive') {
+    // A shadow where she'll slither back in.
+    if (Math.floor(t * 8) % 2 === 0) for (const c of v.cells) r.rect(ox + c.x * TILE + 1, oy + c.y * TILE + 1, 6, 6, '#0e4d3f', 0.6);
+    return;
+  }
+  // Lunge warning: her dash path flashes red.
+  if (v.mode === 'warn' && Math.floor(t * 10) % 2 === 0) {
+    for (const c of v.lungePath) r.rect(ox + c.x * TILE, oy + c.y * TILE, TILE, TILE, '#ff3b4a', 0.45);
+  }
+  const alpha = v.mode === 'race' ? Math.min(1, v.stepT / VIPER.stepTime) : 1;
+  const flash = v.mode === 'hit' && Math.floor(t * 12) % 2 === 0;
+  drawSnake(
+    r,
+    { cells: v.cells, dir: v.dir, grow: v.grow, prevTail: v.prevTail, queue: [] },
+    alpha,
+    flash ? { body: '#ffffff', outline: '#c2c3c7', stripe: '#ffffff', spot: '#e0e0e0', eye: '#ffffff' } : VIPER_LOOK,
+    t + 1.3,
+  );
+  // Tiny gold tiara: she's royalty.
+  const h = v.cells[0];
+  r.rect(ox + h.x * TILE + 2, oy + h.y * TILE - 1, 4, 1, '#ffd94a');
+  r.rect(ox + h.x * TILE + 2, oy + h.y * TILE - 2, 1, 1, '#ffd94a');
+  r.rect(ox + h.x * TILE + 5, oy + h.y * TILE - 2, 1, 1, '#ffd94a');
+  if (v.mode === 'stunned') {
+    // Dizzy stars circling her head.
+    for (let i = 0; i < 3; i++) {
+      const a = t * 6 + (i * Math.PI * 2) / 3;
+      r.rect(Math.round(ox + h.x * TILE + 3 + Math.cos(a) * 6), Math.round(oy + h.y * TILE - 2 + Math.sin(a) * 3), 2, 2, '#ffd94a');
+    }
   }
 }
 

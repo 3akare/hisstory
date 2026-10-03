@@ -1,5 +1,6 @@
 import { BOARD_H, BOARD_W } from '../game/board';
-import { FogTwist, IceTwist, Twist } from '../game/twists';
+import { FogTwist, IceTwist, Twist, WallGapsTwist } from '../game/twists';
+import { SPRITES } from '../art/sprites';
 import type { World } from '../game/world';
 import { BOARD_PX_H, BOARD_PX_W, Renderer, TILE } from '../engine/renderer';
 
@@ -9,6 +10,7 @@ import { BOARD_PX_H, BOARD_PX_W, Renderer, TILE } from '../engine/renderer';
 export function drawTwistsUnder(r: Renderer, twists: Twist[], t: number): void {
   for (const tw of twists) {
     if (tw instanceof IceTwist) drawIce(r, tw, t);
+    if (tw instanceof WallGapsTwist) drawGates(r, tw, t);
   }
 }
 
@@ -31,6 +33,26 @@ function drawIce(r: Renderer, ice: IceTwist, t: number): void {
       // A glint slides across the ice now and then.
       const g = Math.floor((t * 6 + x * 2 + y * 3) % 24);
       if (g < 6) r.rect(px + g, py + 1 + (g % 3), 2, 1, '#ffffff', 0.9);
+    }
+  }
+}
+
+function drawGates(r: Renderer, g: WallGapsTwist, t: number): void {
+  const { boardX: ox, boardY: oy } = r.layout;
+  for (const c of g.cells) {
+    const px = ox + c.x * TILE;
+    const py = oy + c.y * TILE;
+    if (!g.open) {
+      r.sprite('wall', SPRITES.wall, px, py, 'sky');
+      r.rect(px, py, TILE, 1, '#ffe08a', 0.9);
+    } else if (g.warning) {
+      // Blinking: about to shut.
+      if (Math.floor(t * 8) % 2 === 0) r.sprite('wall', SPRITES.wall, px, py, 'sky', { alpha: 0.6 });
+      else r.rect(px, py, TILE, TILE, '#ff3b4a', 0.25);
+    } else {
+      // Open: a faint golden frame.
+      r.rect(px, py, TILE, 1, '#e0b84a', 0.6);
+      r.rect(px, py + TILE - 1, TILE, 1, '#e0b84a', 0.6);
     }
   }
 }

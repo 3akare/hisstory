@@ -14,6 +14,8 @@ export type BossEvent =
   | { type: 'defeated'; at: Cell; who?: string }
   /** One of two bosses is down (double fights). */
   | { type: 'knockout'; at: Cell; who: string }
+  /** A boss ran into something and is dazed (your chance!). */
+  | { type: 'stun'; at: Cell; who?: string }
   /** A boss took a fruit off the board. */
   | { type: 'steal'; at: Cell; who?: string }
   | { type: 'hazard'; at: Cell; kind: string }

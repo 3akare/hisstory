@@ -139,3 +139,12 @@ describe('art and script data', () => {
     }
   });
 });
+
+describe('hints fit on a phone', () => {
+  it('no hint line is longer than 26 characters', async () => {
+    const { CHAPTERS } = await import('../../src/game/chapters');
+    for (const c of CHAPTERS.filter((c) => c.available)) {
+      for (const line of (c.level().hint ?? '').split('\n')) expect(line.length, `ch${c.id}: ${line}`).toBeLessThanOrEqual(26);
+    }
+  });
+});

@@ -64,6 +64,24 @@ function drawDecor(r: Renderer, biome: BiomeId, x: number, y: number, px: number
       }
       break;
     }
+    case 'neon':
+      // Crystals that flicker on and off.
+      if (n < 0.07 && Math.sin(t * 5 + n * 99) > -0.2) {
+        r.rect(px + 3, py + 3, 2, 2, n < 0.035 ? '#4fd8ff' : '#ff4fd8', 0.85);
+        r.rect(px + 3, py + 2, 1, 1, '#ffffff', 0.6);
+      }
+      break;
+    case 'sky':
+      // Little clouds drifting across the floor.
+      if (n < 0.05) {
+        const drift = Math.round(Math.sin(t * 0.7 + n * 50) * 2);
+        r.rect(px + 1 + drift, py + 4, 6, 2, '#ffffff', 0.55);
+        r.rect(px + 2 + drift, py + 3, 3, 1, '#ffffff', 0.55);
+      }
+      break;
+    case 'frost':
+      if (n < 0.04) r.sprite('snowflake', SPRITES.snowflake, px, py, biome, { alpha: 0.5 + 0.3 * Math.sin(t * 2 + x) });
+      break;
     default:
       if (n < 0.06) r.sprite('pebble', SPRITES.pebble, px, py, biome);
       break;

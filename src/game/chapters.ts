@@ -78,6 +78,43 @@ const DESERT_MAP = [
   W,
 ];
 
+const NEON_MAP = [
+  W,
+  W,
+  '....#.........#.....',
+  '....#.........#.....',
+  W,
+  W,
+  '........####........',
+  W,
+  W,
+  '....#.........#.....',
+  '....#.........#.....',
+  W,
+  W,
+  W,
+  W,
+];
+
+/** `=` is a golden gate: it opens and closes (blinking before it shuts). */
+const SKY_MAP = [
+  W,
+  W,
+  W,
+  W,
+  '..######==######....',
+  W,
+  W,
+  W,
+  W,
+  W,
+  '....######==######..',
+  W,
+  W,
+  W,
+  W,
+];
+
 const ORCHARD_MAP = [
   W,
   W,
@@ -220,9 +257,57 @@ export const CHAPTERS: ChapterDef[] = [
     available: true,
     level: () => ({ ...bossLevel('miraGrub'), title: 'CH6 MIRA + GRUB' }),
   },
-  comingSoon(7, 3, 'NEON CAVES', 'neon'),
-  comingSoon(8, 3, 'SKY TEMPLE', 'sky'),
-  comingSoon(9, 3, 'VIPER', 'sky', true, 'VIPER'),
+  {
+    id: 7,
+    act: 3,
+    name: 'NEON CAVES',
+    biome: 'neon',
+    boss: false,
+    available: true,
+    level: () =>
+      chapterLevel({
+        title: 'CH7 NEON CAVES',
+        biome: 'neon',
+        map: NEON_MAP,
+        meterTarget: 18,
+        stepMs: 140,
+        music: 'neon',
+        twists: ['speedRamp'],
+        start: { x: 2, y: 13 },
+        hint: 'EVERY FRUIT MAKES YOU\nFASTER. STAY CALM!',
+      }),
+  },
+  {
+    id: 8,
+    act: 3,
+    name: 'SKY TEMPLE',
+    biome: 'sky',
+    boss: false,
+    available: true,
+    level: () =>
+      chapterLevel({
+        title: 'CH8 SKY TEMPLE',
+        biome: 'sky',
+        map: SKY_MAP,
+        gates: parseMarks(SKY_MAP, '='),
+        meterTarget: 20,
+        stepMs: 135,
+        music: 'sky',
+        twists: ['wallGaps'],
+        start: { x: 2, y: 7 },
+        hint: 'GOLD GATES BLINK, THEN\nSHUT. SLIP THROUGH!',
+      }),
+  },
+  {
+    id: 9,
+    act: 3,
+    name: 'VIPER',
+    biome: 'sky',
+    boss: true,
+    bossName: 'VIPER',
+    available: true,
+    level: () => ({ ...bossLevel('viper'), title: 'CH9 VIPER' }),
+  },
   comingSoon(10, 4, 'THE HOLLOW KING', 'hollow', true, 'KING'),
 ];
 

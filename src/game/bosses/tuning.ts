@@ -108,3 +108,49 @@ export const MIRA_GRUB_MAP = [
   '....................',
   '....................',
 ];
+
+/** Ch9: Viper, a rival snake. Teaches CUTTING OFF a moving target. */
+export const VIPER = {
+  health: 4,
+  /** Sealed-pocket limit around her head (the circling rule works too). */
+  maxPocket: 12,
+  /** Seconds per tile (Pip is ~0.145). */
+  stepTime: 0.17,
+  /** While Pip is partway round her she gets flustered and slows right down. */
+  panicSlow: 2.4,
+  startLength: 6,
+  /** Top right, heading left with open space ahead (not facing a pillar). */
+  start: { x: 15, y: 1 },
+  /** Seconds between lunges, by hits taken. */
+  lungeEvery: [10, 10, 7, 7],
+  lungeWarn: 1.0,
+  lungeLength: 3,
+  lungeStepTime: 0.06,
+  /** Stunned after running into Pip's body: that's your chance. */
+  stunTime: 2.2,
+  hitTime: 0.8,
+  goneTime: 0.6,
+  arriveWarn: 1.0,
+  /** She comes back at least this far from Pip's head. */
+  arriveMinDist: 8,
+  shrinkOnHit: 3,
+};
+
+/** Ch9 arena (sky temple peak): a few golden pillars to cut her off against. */
+export const VIPER_MAP = [
+  '....................',
+  '....................',
+  '....................',
+  '....#..........#....',
+  '....................',
+  '....................',
+  '.........##.........',
+  '.........##.........',
+  '....................',
+  '....................',
+  '....#..........#....',
+  '....................',
+  '....................',
+  '....................',
+  '....................',
+];

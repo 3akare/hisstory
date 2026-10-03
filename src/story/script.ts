@@ -99,4 +99,43 @@ export const SCRIPT: Record<number, ChapterScript> = {
       { who: 'narrator', text: 'The moles retreat underground. High on a ridge, a long shape with glittering eyes has been watching.' },
     ],
   },
+  7: {
+    intro: [
+      { who: 'narrator', text: 'NEON CAVES. Deep underground the rocks glow pink and blue. The deeper you go, the faster you move.' },
+      { who: 'viper', text: 'Sssso... the little garden snake made it this far.' },
+      { who: 'pip', text: 'Who\u2019s there?!' },
+      { who: 'viper', text: 'Keep eating, little one. Every bite makes you fasssster... and clumsier.', mood: 'angry' },
+      { who: 'narrator', text: 'Each fruit speeds you up. Stay calm and plan ahead!' },
+    ],
+    outro: [
+      { who: 'viper', text: 'Not bad. Not bad at all. Meet me at the top of the world.' },
+      { who: 'pip', text: 'Why does everyone keep inviting me places?' },
+    ],
+  },
+  8: {
+    intro: [
+      { who: 'narrator', text: 'SKY TEMPLE. Golden halls above the clouds, where the walls open and close like breathing.' },
+      { who: 'pip', text: 'Okay. Wait for the gap. Go through the gap. Don\u2019t get squished by the gap.' },
+      { who: 'viper', text: 'You think the moles were trouble? They were the warm-up act.' },
+      { who: 'narrator', text: 'Gold gates open and close. They blink before they shut, so slip through in time!' },
+    ],
+    outro: [
+      { who: 'viper', text: 'Enough games. Come and face me, garden snake. Snake to snake.', mood: 'angry' },
+      { who: 'narrator', text: 'At the peak of the temple, a long teal shape uncoils.' },
+    ],
+  },
+  9: {
+    intro: [
+      { who: 'viper', text: 'I am VIPER. Fastest in the kingdom. And every fruit up here is MINE.' },
+      { who: 'pip', text: 'There\u2019s plenty for both of us!' },
+      { who: 'viper', text: 'There is NEVER enough. Not for my father\u2019s kingdom.', mood: 'angry' },
+      { who: 'narrator', text: 'Viper races you for fruit. Make her crash into your body, then circle her head while she\u2019s dizzy!' },
+    ],
+    outro: [
+      { who: 'viper', text: 'Hsss... you\u2019re better than they said.', mood: 'angry' },
+      { who: 'pip', text: 'Your father? Who IS your father?' },
+      { who: 'viper', text: 'The Hollow King. And he will finish you himself.' },
+      { who: 'narrator', text: 'Viper vanishes into the clouds. Far below, the Hollow Throne begins to stir.' },
+    ],
+  },
 };

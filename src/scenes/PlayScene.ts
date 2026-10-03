@@ -10,6 +10,7 @@ import { checkCollision } from '../game/collision';
 import { BossController, BossEvent, BossWorld } from '../game/bosses/bossKit';
 import { Grub } from '../game/bosses/grub';
 import { MiraGrub } from '../game/bosses/miraGrub';
+import { Viper } from '../game/bosses/viper';
 import { GRUB } from '../game/bosses/tuning';
 import { ringAround } from '../game/coil';
 import { LevelConfig } from '../game/level';
@@ -59,6 +60,8 @@ export function createBoss(level: LevelConfig, world: World): BossController | n
       return new Grub(world.board);
     case 'miraGrub':
       return new MiraGrub(world.board);
+    case 'viper':
+      return new Viper(world.board);
     default:
       return null;
   }
@@ -532,6 +535,12 @@ export class PlayScene extends Scene {
           this.fx.flash('#ffd94a', 0.35);
           this.gainPoints(COIL_POINTS, c);
           break;
+        case 'stun':
+          this.fx.burst(c.x, c.y, [BASE.Y, BASE.W], 10, 40, { gravity: 0, life: 0.6 });
+          this.fx.float('STUNNED!', c.x, c.y - 10, BASE.Y);
+          this.fx.shake(2, 0.2);
+          this.app.audio.sfx('surface');
+          break;
         case 'knockout':
           this.fx.burst(c.x, c.y, [BASE.Y, BASE.W, BASE.M, BASE.O], 40, 120, { life: 0.8 });
           this.fx.float(`${e.who} DOWN!`, c.x, c.y - 12, BASE.Y);
@@ -613,7 +622,7 @@ export class PlayScene extends Scene {
     else if (boss instanceof MiraGrub) {
       if (boss.m.mode === 'walk' || boss.m.mode === 'panic') h = boss.miraCell;
       else if (boss.grub.s.mode === 'up') h = boss.grub.holeCell;
-    }
+    } else if (boss instanceof Viper && boss.present && boss.v.mode !== 'hit') h = boss.head;
     if (!boss || !h) return false;
     const ring = ringAround(h.x, h.y);
     const snake = this.world.snake;
@@ -742,15 +751,16 @@ export class PlayScene extends Scene {
     if (this.hintTime > 0 && this.level.hint && (this.state === 'playing' || this.state === 'ready')) {
       const a = Math.min(1, this.hintTime * 2);
       const lines = this.level.hint.split('\n');
-      const w = Math.max(...lines.map((l) => r.measure(l))) + 12;
-      const h = lines.length * 10 + 5;
+      // The compact dialogue font keeps long tips inside a phone-width board.
+      const w = Math.min(BOARD_PX_W - 4, Math.max(...lines.map((l) => r.measure(l, 10, 'dialog'))) + 14);
+      const h = lines.length * 11 + 6;
       // Never cover Pip: the banner sits at whichever end of the board he isn't.
       const headLow = this.world.snake.cells[0].y >= BOARD_H / 2;
       const y = headLow ? L.boardY + 4 : L.boardY + BOARD_PX_H - h - 4;
       r.ctx.globalAlpha = a;
       r.panel(cx - w / 2, y, w, h, '#2a1a3a', BASE.Y, 0.9 * a);
       r.ctx.globalAlpha = 1;
-      lines.forEach((l, i) => r.text(l, cx, y + 4 + i * 10, { align: 'center', color: BASE.Y, alpha: a }));
+      lines.forEach((l, i) => r.text(l, cx, y + 4 + i * 11, { align: 'center', color: BASE.Y, alpha: a, font: 'dialog', size: 10 }));
     }
     if (this.invincible) r.text('INVINCIBLE', L.boardX + 2, L.boardY + 2, { color: BASE.C, size: 8 });
     this.musicBtn.place(L.w);

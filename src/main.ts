@@ -10,6 +10,7 @@ import { ChapterMapScene } from './scenes/ChapterMapScene';
 import { bossLevel, CLASSIC_LEVEL } from './game/level';
 import { Grub } from './game/bosses/grub';
 import { MiraGrub } from './game/bosses/miraGrub';
+import { Viper } from './game/bosses/viper';
 import { installDebug } from './debug/debug';
 import { FONT_DIALOG, FONT_PIXEL } from './engine/renderer';
 
@@ -69,6 +70,7 @@ async function boot(): Promise<void> {
         info.miraMode = s.boss.m.mode;
         info.bossMode = s.boss.grub.s.mode;
       }
+      if (s.boss instanceof Viper) info.viperMode = s.boss.v.mode;
       info.twists = s.twists.map((t) => t.id);
       info.fruitKinds = s.world.fruits.map((f) => f.kind);
       info.eaten = s.world.eaten;

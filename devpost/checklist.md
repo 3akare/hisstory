@@ -79,7 +79,7 @@ Build mode: fast
   Learner check: Play Ch5 and fight Mira + Grub. Do the portals feel like Google Snake's, and is the double boss hectic-but-fair?
   Commit: `Act II: ice, portal fruit, fog, Mira + Grub boss`
 
-- [ ] **8. Act III: Neon Caves, Sky Temple, Viper the rival snake**
+- [x] **8. Act III: Neon Caves, Sky Temple, Viper the rival snake**
   Becomes usable: Ch7 speeds up as you go. Ch8 has wall gaps that open and close. Ch9 is Viper: a rival AI snake that races you for fruit, grows, and lunges after a flashing path warning. She's stunned if she runs into your body, and you coil her head to wound her. She reveals she's the King's daughter. Each part has its own palette and track (`neon`, `sky`, `boss-viper`).
   Why now: Story order. Viper's AI is the most complex boss behaviour short of the finale.
   PRD ref: `prd.md > Story Script`, `prd.md > Boss Design and Difficulty`
@@ -133,3 +133,4 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 - Added `src/game/snapshot.ts` so mid-level saves are pure functions with their own unit test (a mid-Grub-fight snapshot replays identically after JSON), and `src/scenes/PauseScene.ts`. Escape and P now pause instead of quitting (Quit and Map are in the pause menu), and a pause button sits next to the music button for touch. A resumed game opens on a "WELCOME BACK" pause menu, and Resume runs the 3-2-1.
 - `isUnlocked` also opens anything already cleared or at or before your checkpoint, so Milestone 1 saves (Ch1 → Grub) keep everything when Ch2 is slotted in between. Level snapshots now carry per-twist state. Every chapter's start position is checked by a test for a clear 8-cell run-up, added after a screenshot showed Ch2's first start facing a wall.
 - Act II, applying what the coil play-test taught: Mira also freezes in "panic" while you circle her, Grub's return is quicker but still gentler than the original 4 s plan (5/4.5/4 s up), and Mira's trail lasts 2 s instead of 3. Added a `?debug=1&chapter=N` link for testing and demo recording. The hint banner now moves to whichever end of the board Pip isn't on (a screenshot showed it hiding Pip's Ch4 start).
+- Act III: Viper also slows right down while you circle her (the same forgiving "panic" rule as the other bosses), and after a hit she slithers off and re-enters far from Pip, which is how she "breaks free". Her start was moved off a pillar (caught by a unit test). Hint banners now use the compact dialogue font, with a test keeping every line at 26 characters or fewer, after a screenshot showed long tips overflowing a phone screen.

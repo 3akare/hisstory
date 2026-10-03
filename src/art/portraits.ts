@@ -4,7 +4,7 @@ import type { SpriteDef } from './sprites';
  * Cutscene portraits: 16×16 grids drawn at 2× (32×32 on screen) for a chunky
  * retro look. Each speaker has a neutral face and an angry/smug one.
  */
-export type SpeakerId = 'pip' | 'crow' | 'grub' | 'toad' | 'mira' | 'narrator';
+export type SpeakerId = 'pip' | 'crow' | 'grub' | 'toad' | 'mira' | 'viper' | 'narrator';
 export type Mood = 'neutral' | 'angry';
 
 export interface Portrait {
@@ -129,6 +129,27 @@ const MIRA: SpriteDef = {
   ],
 };
 
+const VIPER: SpriteDef = {
+  rows: [
+    '....Y.Y.Y.......',
+    '....YYYYY.......',
+    '...vvvvvvvv.....',
+    '..vVVVVVVVVv....',
+    '.vVVVVVVVVVVv...',
+    '.vVVYKVVVVVVVv..',
+    '.vVVYKVVVVVVVVv.',
+    '.vVVVVVVVVVVVVVv',
+    '..vVVVVVVVVVVVvv',
+    '...vVVWWWWWWVv.R',
+    '....vVVVVVVVVvRR',
+    '.....vvVVVVVv..R',
+    '.......vVVVv....',
+    '........vVv.....',
+    '.........v......',
+    '................',
+  ],
+};
+
 export const PORTRAITS: Record<Exclude<SpeakerId, 'narrator'>, Portrait> = {
   pip: {
     name: 'PIP',
@@ -153,6 +174,14 @@ export const PORTRAITS: Record<Exclude<SpeakerId, 'narrator'>, Portrait> = {
     neutral: TOAD,
     angry: withRows(TOAD, { 2: '..WKKWW..WWKKW..', 3: '..WKKWLLLLWKKW..', 1: '...KKK....KKK...' }),
     frame: '#24361a',
+  },
+  viper: {
+    name: 'VIPER',
+    color: '#2fd6a0',
+    side: 'right',
+    neutral: VIPER,
+    angry: withRows(VIPER, { 4: '.vVKKVVVVVVVv...', 5: '.vVKYKVVVVVVVv..', 6: '.vVVYKVVVVVVVVv.' }),
+    frame: '#0e2e28',
   },
   mira: {
     name: 'MIRA',
