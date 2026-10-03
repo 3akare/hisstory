@@ -22,6 +22,24 @@ export const ACT_NAMES = ['', 'ACT I', 'ACT II', 'ACT III', 'ACT IV'];
 
 const W = '....................';
 
+const BOG_MAP = [
+  W,
+  W,
+  '...###.......###....',
+  W,
+  W,
+  W,
+  '.........##.........',
+  '.........##.........',
+  W,
+  W,
+  W,
+  '...###.......###....',
+  W,
+  W,
+  W,
+];
+
 const ORCHARD_MAP = [
   W,
   W,
@@ -81,7 +99,27 @@ export const CHAPTERS: ChapterDef[] = [
         hint: 'EAT 10 FRUIT TO\nFILL THE METER',
       }),
   },
-  comingSoon(2, 1, 'MUSHROOM BOG', 'bog'),
+  {
+    id: 2,
+    act: 1,
+    name: 'MUSHROOM BOG',
+    biome: 'bog',
+    boss: false,
+    available: true,
+    level: () =>
+      chapterLevel({
+        title: 'CH2 MUSHROOM BOG',
+        biome: 'bog',
+        map: BOG_MAP,
+        meterTarget: 12,
+        fruitCount: 2,
+        stepMs: 135,
+        music: 'bog',
+        twists: ['poison'],
+        start: { x: 2, y: 9 },
+        hint: 'PURPLE FRUIT IS POISON!\nIT SHRINKS YOU',
+      }),
+  },
   {
     id: 3,
     act: 1,

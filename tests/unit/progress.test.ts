@@ -6,6 +6,7 @@ import { defaultSave } from '../../src/save/save';
 import { SPRITES } from '../../src/art/sprites';
 import { PORTRAITS } from '../../src/art/portraits';
 import { SCRIPT } from '../../src/story/script';
+import { isWall, parseBoard } from '../../src/game/board';
 
 /** A copy of the chapter list with everything built (the finished game). */
 const ALL: ChapterDef[] = CHAPTERS.map((c) => ({ ...c, available: true }));
@@ -129,6 +130,12 @@ describe('art and script data', () => {
         for (const row of lvl.map) expect(row).toHaveLength(20);
       }
       expect(lvl.kind === 'boss' ? !!lvl.boss : !!lvl.meterTarget, `ch${c.id}`).toBe(true);
+      // A clear run-up: the 8 cells ahead of the start are open floor.
+      const board = parseBoard(lvl.map);
+      const v = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] }[lvl.startDir];
+      for (let i = 0; i <= 8; i++) {
+        expect(isWall(board, lvl.start.x + v[0] * i, lvl.start.y + v[1] * i), `ch${c.id} start blocked at ${i}`).toBe(false);
+      }
     }
   });
 });

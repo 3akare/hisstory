@@ -1,8 +1,9 @@
 import { Rng } from '../engine/rng';
 import { BOARD_H, BOARD_W, Board, Cell, Dir, isWall, parseBoard } from './board';
 import { Blocker, checkCollision, CrashCause } from './collision';
-import { Fruit, fruitAt, randomFreeCell } from './fruit';
-import { advance, nextHead, occupies, placeSnake, Snake } from './snake';
+import { Fruit, fruitAt, FruitKind, randomFreeCell } from './fruit';
+import { advance, nextHead, occupies, placeSnake, shrink, Snake } from './snake';
+import { POISON_SHRINK } from './twists';
 
 /**
  * Everything that happens in one snake step, so scenes can play the matching
@@ -45,6 +46,8 @@ export class World {
   /** Keep fruit at least this far from this cell (bosses). */
   avoid: { cell: Cell; dist: number } | undefined;
   fruitCount: number;
+  /** What kind of fruit to spawn next (twists change this). */
+  kindFor: (world: World) => FruitKind = () => 'apple';
   readonly startHead: Cell;
   readonly startDir: Dir;
 
@@ -70,7 +73,7 @@ export class World {
     while (this.fruits.length < this.fruitCount) {
       const c = randomFreeCell(this.rng, this.blocked, this.avoid);
       if (!c) return; // board is full
-      this.fruits.push({ kind: 'apple', x: c.x, y: c.y, age: 0 });
+      this.fruits.push({ kind: this.kindFor(this), x: c.x, y: c.y, age: 0 });
     }
   }
 
@@ -85,9 +88,15 @@ export class World {
     const i = fruitAt(this.fruits, head.x, head.y);
     if (i >= 0) {
       const fruit = this.fruits.splice(i, 1)[0];
-      this.snake.grow += 1;
-      this.eaten += 1;
-      this.points += 1;
+      if (fruit.kind === 'poison') {
+        // Poison: shrink and lose a notch of the meter. No points.
+        shrink(this.snake, POISON_SHRINK);
+        this.eaten = Math.max(0, this.eaten - 1);
+      } else {
+        this.snake.grow += 1;
+        this.eaten += 1;
+        this.points += 1;
+      }
       events.push({ type: 'eat', fruit });
       this.fillFruit();
     }

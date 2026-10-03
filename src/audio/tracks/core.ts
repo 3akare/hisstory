@@ -101,6 +101,33 @@ export const BOSS_GRUB: Song = {
   drums: [groove, groove, groove, groove, groove, groove, groove, 'k . s . k . s . s s s s c . . .'],
 };
 
+const bgEm = 'E2 . . E2 . . B1 . E2 . . E2 G2 . B1 .';
+const bgD = 'D2 . . D2 . . A1 . D2 . . D2 F#2 . A1 .';
+const bgC = 'C2 . . C2 . . G1 . C2 . . C2 E2 . G1 .';
+const bgAm = 'A1 . . A1 . . E2 . A1 . . A1 C2 . E2 .';
+
+/** MUSHROOM BOG (Ch2). A murky, bouncy swamp shuffle in E minor. */
+export const BOG: Song = {
+  name: 'bog',
+  bpm: 112,
+  leadWave: 'pulse12',
+  harmonyWave: 'pulse50',
+  mix: { lead: 0.085, harmony: 0.03, bass: 0.16, drums: 0.08 },
+  lead: [
+    'E5 . . G5 . A5 . . B5 - A5 . G5 . E5 .',
+    'D5 - - - E5 . . . . . . . . . . .',
+    'E5 . . G5 . A5 . . B5 - D6 . B5 . A5 .',
+    'G5 - A5 - F#5 - - - E5 - - - . . . .',
+    'B5 . A5 . G5 . A5 . B5 . . . E6 - - -',
+    'D6 . B5 . A5 . G5 . A5 - - - . . . .',
+    'G5 . F#5 . E5 . F#5 . G5 . A5 . B5 - - -',
+    'A5 - G5 - F#5 - D5 - E5 - - - - - . .',
+  ],
+  harmony: ['B3 . . . E4 . . . B3 . . . E4 . . .'],
+  bass: [bgEm, bgD, bgEm, bgC, bgEm, bgD, bgAm, bgEm],
+  drums: ['k . . h . . s . . k h . s . . h'],
+};
+
 /** THE MAP. A light, adventurous march in G. */
 export const MAP: Song = {
   name: 'map',

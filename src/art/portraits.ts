@@ -4,7 +4,7 @@ import type { SpriteDef } from './sprites';
  * Cutscene portraits: 16×16 grids drawn at 2× (32×32 on screen) for a chunky
  * retro look. Each speaker has a neutral face and an angry/smug one.
  */
-export type SpeakerId = 'pip' | 'crow' | 'grub' | 'narrator';
+export type SpeakerId = 'pip' | 'crow' | 'grub' | 'toad' | 'narrator';
 export type Mood = 'neutral' | 'angry';
 
 export interface Portrait {
@@ -87,6 +87,27 @@ const GRUB: SpriteDef = {
   ],
 };
 
+const TOAD: SpriteDef = {
+  rows: [
+    '................',
+    '...WWW....WWW...',
+    '..WKKWW..WWKKW..',
+    '..WKKWLLLLWKKW..',
+    '..LWWLLLLLLWWL..',
+    '.LLLLLLLLLLLLLL.',
+    '.LLgLLLLLLLLgLL.',
+    '.LLLgggggggggLL.',
+    '.LLLLLLLLLLLLLL.',
+    '..LyyyyyyyyyyL..',
+    '..LyyPyyyyPyyL..',
+    '...LLyyyyyyLL...',
+    '..LL.LLLLLL.LL..',
+    '.LL..........LL.',
+    '................',
+    '................',
+  ],
+};
+
 export const PORTRAITS: Record<Exclude<SpeakerId, 'narrator'>, Portrait> = {
   pip: {
     name: 'PIP',
@@ -103,6 +124,14 @@ export const PORTRAITS: Record<Exclude<SpeakerId, 'narrator'>, Portrait> = {
     neutral: CROW,
     angry: withRows(CROW, { 3: '..KkkKKkkkkK....', 4: '..KkkWWKkkkkK...' }),
     frame: '#1d1d2b',
+  },
+  toad: {
+    name: 'OLD TOAD',
+    color: '#7ee06a',
+    side: 'right',
+    neutral: TOAD,
+    angry: withRows(TOAD, { 2: '..WKKWW..WWKKW..', 3: '..WKKWLLLLWKKW..', 1: '...KKK....KKK...' }),
+    frame: '#24361a',
   },
   grub: {
     name: 'GRUB',

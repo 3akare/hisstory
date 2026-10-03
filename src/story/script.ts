@@ -31,6 +31,20 @@ export const SCRIPT: Record<number, ChapterScript> = {
       { who: 'grub', text: 'Snfff... snfff... SNAKE. I smell SNAKE in the King’s orchard.', mood: 'angry' },
     ],
   },
+  2: {
+    intro: [
+      { who: 'narrator', text: 'MUSHROOM BOG. Thick air, glowing caps, and fruit that is not always what it seems.' },
+      { who: 'toad', text: 'Ribbit... ugh. Don\u2019t eat the purple ones, kid. Trust me on that.' },
+      { who: 'pip', text: 'You don\u2019t look so good.' },
+      { who: 'toad', text: 'The King\u2019s diggers poisoned the bog. Big mole. Bigger mouth. Heading for YOUR orchard.', mood: 'angry' },
+      { who: 'narrator', text: 'Purple fruit is poison: it shrinks you and drains your meter. Only eat the good stuff!' },
+    ],
+    outro: [
+      { who: 'toad', text: 'You made it through... Listen. Mole holes mean Grub. And Grub means trouble.' },
+      { who: 'pip', text: 'Then I\u2019ll be trouble right back.' },
+      { who: 'narrator', text: 'Under their feet, the ground starts to tremble.' },
+    ],
+  },
   3: {
     intro: [
       { who: 'grub', text: 'GRUB THE MOLE! Royal Digger to the Hollow King! You are in MY tunnels, worm.' },

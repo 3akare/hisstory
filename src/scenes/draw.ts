@@ -36,17 +36,38 @@ export function drawBoard(r: Renderer, board: Board, biome: BiomeId, t: number):
       }
       const checker = (x + y) % 2 === 0;
       r.sprite(checker ? 'floorA' : 'floorB', checker ? SPRITES.floorA : SPRITES.floorB, px, py, biome);
-      const n = cellNoise(x, y);
-      if (n < 0.08) {
-        // Swaying tuft: shift one pixel back and forth on a slow wave.
-        const sway = Math.sin(t * 1.6 + x * 0.7 + y) > 0.6 ? 1 : 0;
-        r.sprite('tuft', SPRITES.tuft, px + sway, py, biome);
-      } else if (n > 0.975 && biome === 'orchard') {
-        r.sprite('flower', SPRITES.flower, px, py, biome);
-      }
+      drawDecor(r, biome, x, y, px, py, t);
     }
   }
   for (const h of board.holes) r.sprite('hole', SPRITES.hole, ox + h.x * TILE, oy + h.y * TILE, biome);
+}
+
+/** Little animated details per biome: swaying grass, glowing mushrooms, bog bubbles, snow. */
+function drawDecor(r: Renderer, biome: BiomeId, x: number, y: number, px: number, py: number, t: number): void {
+  const n = cellNoise(x, y);
+  const sway = Math.sin(t * 1.6 + x * 0.7 + y) > 0.6 ? 1 : 0;
+  switch (biome) {
+    case 'orchard':
+      if (n < 0.08) r.sprite('tuft', SPRITES.tuft, px + sway, py, biome);
+      else if (n > 0.975) r.sprite('flower', SPRITES.flower, px, py, biome);
+      break;
+    case 'bog': {
+      if (n < 0.05) r.sprite('tuft', SPRITES.tuft, px + sway, py, biome);
+      else if (n > 0.965) {
+        // Glowing mushrooms pulse softly.
+        const glow = 0.6 + 0.4 * Math.sin(t * 2 + x);
+        r.sprite('mushroom', SPRITES.mushroom, px, py, biome, { alpha: glow });
+      } else if (n > 0.93) {
+        // Bubbles rise and pop on a loop, each cell on its own beat.
+        const phase = (t * 0.8 + n * 10) % 2;
+        if (phase < 1) r.sprite('bubble', SPRITES.bubble, px, py - Math.round(phase * 3), biome, { alpha: 1 - phase });
+      }
+      break;
+    }
+    default:
+      if (n < 0.06) r.sprite('pebble', SPRITES.pebble, px, py, biome);
+      break;
+  }
 }
 
 export function drawFruit(r: Renderer, fruits: Fruit[], t: number, biome: BiomeId = 'orchard'): void {

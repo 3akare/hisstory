@@ -16,6 +16,7 @@ import { addPoints, COIL_POINTS, freshLives, LivesState, loseLife, mercyLevel } 
 import { placeSnake, queueTurn } from '../game/snake';
 import { classicStepMs, World, WorldEvent } from '../game/world';
 import { LevelSnapshot, restoreLevel, snapshotLevel } from '../game/snapshot';
+import { createTwists, Twist } from '../game/twists';
 import { drawBoard, drawFruit, drawSnake, PIP_LOOK, WHITE_LOOK } from './draw';
 import { drawBoss } from './bossDraw';
 import { drawDpad, drawHudBar, drawMeter } from './hud';
@@ -67,6 +68,7 @@ export class PlayScene extends Scene {
   readonly name = 'play';
   world!: World;
   boss: BossController | null = null;
+  twists: Twist[] = [];
   fx = new Fx();
   state: PlayState = 'ready';
   lives: LivesState;
@@ -123,13 +125,13 @@ export class PlayScene extends Scene {
   // ---- saving mid-level -----------------------------------------------------------
 
   snapshot(): LevelSnapshot {
-    return snapshotLevel(this.world, this.boss, this.livesLostThisFight, this.hintTime);
+    return snapshotLevel(this.world, this.boss, this.livesLostThisFight, this.hintTime, this.twists);
   }
 
   /** Put a snapshot back. Returns false (and keeps a fresh level) if it doesn't look right. */
   restore(data: unknown): boolean {
     try {
-      const extra = restoreLevel(this.world, this.boss, data);
+      const extra = restoreLevel(this.world, this.boss, data, this.twists);
       if (!extra) return false;
       this.livesLostThisFight = extra.livesLost;
       this.hintTime = extra.hint;
@@ -202,6 +204,9 @@ export class PlayScene extends Scene {
       seed,
     });
     this.boss = createBoss(this.level, this.world);
+    this.twists = createTwists(this.level.twists);
+    const picker = this.twists.find((t) => t.fruitKind);
+    if (picker) this.world.kindFor = (w) => picker.fruitKind!(w);
     this.wireBoss();
     this.world.fruitCount = this.level.fruitCount;
     this.world.fillFruit();
@@ -222,24 +227,29 @@ export class PlayScene extends Scene {
     this.stateTime = 0;
   }
 
-  /** Point the world's collision/spawn rules at the boss. */
+  /** Point the world's collision/spawn rules at the boss and twists. */
   private wireBoss(): void {
     const boss = this.boss;
-    if (!boss) return;
-    this.world.reserved = (x, y) => boss.reserved(x, y);
+    const twists = this.twists;
+    this.world.reserved = (x, y) => (boss?.reserved(x, y) ?? false) || twists.some((t) => t.reserved?.(x, y));
     this.refreshBossRules();
   }
 
   private refreshBossRules(): void {
     const boss = this.boss;
+    const twistBlockers = this.twists.flatMap((t) => t.blockers?.() ?? []);
+    const bossBlockers = boss ? boss.blockers() : [];
+    this.world.blockers = this.invincible ? [] : this.ghost > 0 ? twistBlockers.filter((b) => b.cause !== 'hazard') : [...bossBlockers, ...twistBlockers];
     if (!boss) return;
-    this.world.blockers = this.ghost > 0 || this.invincible ? [] : boss.blockers();
     const f = boss.focus();
     this.world.avoid = f ? { cell: f, dist: GRUB.fruitDistance } : undefined;
   }
 
   get stepMs(): number {
-    return this.isClassic ? classicStepMs(this.world.eaten) : this.level.stepMs;
+    if (this.isClassic) return classicStepMs(this.world.eaten);
+    let ms = this.level.stepMs;
+    for (const t of this.twists) if (t.stepScale) ms *= t.stepScale(this.world);
+    return ms;
   }
 
   private bossWorld(): BossWorld {
@@ -375,12 +385,14 @@ export class PlayScene extends Scene {
     if (this.ghost > 0) this.ghost -= dt;
     if (this.boss) {
       this.handleBoss(this.boss.update(dt, this.bossWorld()));
-      this.refreshBossRules();
     }
+    for (const t of this.twists) t.update?.(dt, this.world);
+    this.refreshBossRules();
     this.stepAcc += dt * 1000;
     while (this.stepAcc >= this.stepMs && this.state === 'playing') {
       this.stepAcc -= this.stepMs;
       this.refreshBossRules();
+      for (const t of this.twists) t.beforeStep?.(this.world);
       if (this.invincible) this.autoDodge();
       this.handle(this.world.step());
       if (this.boss && this.state === 'playing') this.handleBoss(this.boss.afterStep(this.bossWorld()));
@@ -394,7 +406,14 @@ export class PlayScene extends Scene {
 
   private handle(events: WorldEvent[]): void {
     for (const e of events) {
-      if (e.type === 'eat') {
+      if (e.type === 'eat' && e.fruit.kind === 'poison') {
+        const c = this.cellCenter(e.fruit);
+        this.fx.burst(c.x, c.y, [BASE.P, BASE.p, '#b6ff3a'], 16, 60);
+        this.fx.float('-1', c.x, c.y - 6, BASE.P);
+        this.fx.shake(2, 0.15);
+        this.fx.flash('#b45cff', 0.25);
+        this.app.audio.sfx('poison');
+      } else if (e.type === 'eat') {
         const c = this.cellCenter(e.fruit);
         this.fx.burst(c.x, c.y, [BASE.R, BASE.Y, BASE.W, BASE.O], 14, 70);
         this.fx.float('+1', c.x, c.y - 6, BASE.Y);

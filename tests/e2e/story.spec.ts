@@ -40,6 +40,20 @@ test('story: Home → map → Ch1 cutscene → clear → Grub → clear → chec
   await expect.poll(async () => (await info(page)).scene).toBe('cutscene'); // outro
   await advanceCutscene(page);
   await expect.poll(async () => (await info(page)).scene).toBe('map');
+  expect((await info(page)).selected).toBe(2); // Mushroom Bog is next
+
+  await page.keyboard.press('Enter');
+  await advanceCutscene(page);
+  await expect.poll(async () => (await info(page)).level).toBe('CH2 MUSHROOM BOG');
+  await page.keyboard.press('KeyD');
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: testInfo.outputPath('ch2.png') });
+  await page.evaluate(() => window.__HISSTORY_DEBUG__!.win());
+  await expect.poll(async () => (await info(page)).state).toBe('won');
+  await page.waitForTimeout(900);
+  await page.keyboard.press('Enter');
+  await advanceCutscene(page);
+  await expect.poll(async () => (await info(page)).scene).toBe('map');
   expect((await info(page)).selected).toBe(3); // Grub is next
 
   await page.keyboard.press('Enter');
@@ -57,6 +71,7 @@ test('story: Home → map → Ch1 cutscene → clear → Grub → clear → chec
 
   const story = (await info(page)).story as { completed: boolean[]; checkpoint: number };
   expect(story.completed[0]).toBe(true);
+  expect(story.completed[1]).toBe(true);
   expect(story.completed[2]).toBe(true);
   expect(story.checkpoint).toBeGreaterThanOrEqual(3); // Grub's checkpoint (moves on once Act II exists)
 

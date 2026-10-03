@@ -59,7 +59,7 @@ Build mode: fast
   Learner check: Play into the Grub fight, close the tab, reopen it, and resume. Is everything where you left it?
   Commit: `Mid-level save/resume, pause menu, Pages deploy workflow`
 
-- [ ] **6. Act I complete: Mushroom Bog and poison fruit**
+- [x] **6. Act I complete: Mushroom Bog and poison fruit**
   Becomes usable: Ch2 Mushroom Bog sits between the Orchard and Grub, with its own palette, its own track, and purple poison fruit that shrinks you and drains the meter. There's a dying-toad cutscene. Act I is fully playable: Ch1 → Ch2 → Grub.
   Why now: It completes Act I, which was the learner's original cut. It also proves the chapter-twist system on the simplest twist before the harder ones.
   PRD ref: `prd.md > Story Script`, `prd.md > Story: Normal Chapters`
@@ -102,7 +102,7 @@ Build mode: fast
 ## Hands-on Checkpoints
 
 - [x] Early usable behavior explored: after slice 2 (does coil to conquer feel fair and fun? Feedback shapes all later bosses)
-- [ ] Milestone 1 explored: after slice 5 (the full submittable game, end to end, including resume)
+- [x] Milestone 1 explored: after slice 5 (the full submittable game, end to end, including resume)
 - [ ] Final kick-the-tires exploration and feedback completed
 
 ## Final Review
@@ -131,3 +131,4 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 - Added `src/scenes/story.ts` (how Story's screens connect: map → intro → play → outro / out of lives) and `normalizeCheckpoint` in `progress.ts`. In Milestone 1 nothing exists after Grub yet, so his checkpoint stays on Ch3. It moves forward automatically once Act II is built, so saves made now keep working. Unbuilt chapters show as "?" (coming soon) and are skipped in the unlock chain. Portraits are 16×16 drawn at 2× (chunky, quicker to author) instead of 32×32.
 - Input is now only blocked while a screen fades *out*, not while the next one fades in (a test showed the map ignoring Enter for a moment). Running out of lives goes straight to one Out of Lives screen; before, the play screen also drew its own box first.
 - Added `src/game/snapshot.ts` so mid-level saves are pure functions with their own unit test (a mid-Grub-fight snapshot replays identically after JSON), and `src/scenes/PauseScene.ts`. Escape and P now pause instead of quitting (Quit and Map are in the pause menu), and a pause button sits next to the music button for touch. A resumed game opens on a "WELCOME BACK" pause menu, and Resume runs the 3-2-1.
+- `isUnlocked` also opens anything already cleared or at or before your checkpoint, so Milestone 1 saves (Ch1 → Grub) keep everything when Ch2 is slotted in between. Level snapshots now carry per-twist state. Every chapter's start position is checked by a test for a clear 8-cell run-up, added after a screenshot showed Ch2's first start facing a wall.

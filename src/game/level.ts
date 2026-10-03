@@ -2,6 +2,7 @@ import type { BiomeId } from '../art/palettes';
 import { Cell, Dir } from './board';
 import type { BossId } from './bosses/bossKit';
 import { GRUB } from './bosses/tuning';
+import type { TwistId } from './twists';
 
 /** Everything PlayScene needs to set up one level. */
 export interface LevelConfig {
@@ -22,6 +23,8 @@ export interface LevelConfig {
   hint?: string;
   /** Song name (audio/tracks). */
   music: string;
+  /** Chapter twists (game/twists.ts). */
+  twists?: TwistId[];
 }
 
 export const CLASSIC_LEVEL: LevelConfig = {

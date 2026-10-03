@@ -26,12 +26,16 @@ export function prevChapter(id: number, chapters: ChapterDef[] = CHAPTERS): numb
   return prev ? prev.id : null;
 }
 
-/** Open = built, and either the first chapter or its playable predecessor is cleared. */
+/**
+ * Open = built, and either the first chapter or its playable predecessor is cleared.
+ * Also open: anything you've already cleared or got past (at or before your checkpoint),
+ * so saves from before a new chapter was slotted in never lose progress.
+ */
 export function isUnlocked(story: Story, id: number, chapters: ChapterDef[] = CHAPTERS): boolean {
   const c = chapters[id - 1];
   if (!c || !c.available) return false;
   const prev = prevChapter(id, chapters);
-  return prev === null || story.completed[prev - 1];
+  return prev === null || story.completed[prev - 1] || story.completed[id - 1] || id <= story.checkpoint;
 }
 
 /** The chapter to suggest on the map: the first open chapter not yet cleared, else the last open one. */
