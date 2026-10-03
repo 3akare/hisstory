@@ -1,11 +1,36 @@
 import { SpriteDef, SPRITES } from '../art/sprites';
 import type { BossController } from '../game/bosses/bossKit';
 import { Grub } from '../game/bosses/grub';
+import type { Cell } from '../game/board';
+import { COIL_DEGREES, windingDegrees } from '../game/coil';
 import { Renderer, TILE } from '../engine/renderer';
 
 /** Drawing for each boss. The rules live in game/bosses; only pictures here. */
-export function drawBoss(r: Renderer, boss: BossController, t: number): void {
-  if (boss instanceof Grub) drawGrub(r, boss, t);
+export function drawBoss(r: Renderer, boss: BossController, t: number, snake: readonly Cell[] = []): void {
+  if (boss instanceof Grub) {
+    drawGrub(r, boss, t);
+    if (boss.s.mode === 'up' && boss.holeCell) drawCoilRing(r, boss.holeCell, windingDegrees(snake, boss.holeCell), t);
+  }
+}
+
+/**
+ * The coil progress ring: 12 dots around the boss that light up as Pip circles
+ * him. All lit = coil. Makes "go around him" readable at a glance.
+ */
+export function drawCoilRing(r: Renderer, at: Cell, degrees: number, t: number, radius = 10): void {
+  const { boardX: ox, boardY: oy } = r.layout;
+  const cx = ox + at.x * TILE + 4;
+  const cy = oy + at.y * TILE + 4;
+  const dots = 12;
+  const lit = Math.floor(Math.min(1, degrees / COIL_DEGREES) * dots);
+  for (let i = 0; i < dots; i++) {
+    const a = (i / dots) * Math.PI * 2 - Math.PI / 2;
+    const x = Math.round(cx + Math.cos(a) * radius) - 1;
+    const y = Math.round(cy + Math.sin(a) * radius) - 1;
+    const on = i < lit;
+    const pulse = on && Math.floor(t * 10) % 2 === 0;
+    r.rect(x, y, 2, 2, on ? (pulse ? '#ffffff' : '#ffd94a') : '#0b0b14', on ? 1 : 0.35);
+  }
 }
 
 export function drawGrub(r: Renderer, g: Grub, t: number): void {
@@ -33,6 +58,13 @@ export function drawGrub(r: Renderer, g: Grub, t: number): void {
       const bob = Math.sin(t * 6) > 0 ? 0 : 1;
       const dy = Math.round((1 - rise) * 6) + bob;
       drawClipped(r, px, py, dy, 'grub');
+      // Countdown bar: how long before he dives. Turns red near the end.
+      const left = Math.max(0, s.timer / Math.max(0.01, s.upFor));
+      const urgent = s.timer < 1.2;
+      r.rect(px - 1, py - 4, 10, 3, '#0b0b14', 0.8);
+      r.rect(px, py - 3, Math.max(1, Math.round(8 * left)), 1, urgent && Math.floor(t * 8) % 2 ? '#ff3b4a' : '#ffd94a');
+      // Panic sweat when he's half-wrapped.
+      if (s.bonus > 0 && Math.floor(t * 6) % 2 === 0) r.rect(px + 8, py, 1, 2, '#4fd8ff');
       break;
     }
     case 'hit': {

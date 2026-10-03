@@ -26,7 +26,7 @@ export const CLASSIC_LEVEL: LevelConfig = {
   kind: 'classic',
   title: 'CLASSIC',
   biome: 'orchard',
-  start: { x: 8, y: 9 },
+  start: { x: 6, y: 7 },
   startDir: 'R',
   startLength: 4,
   fruitCount: 1,
@@ -46,9 +46,9 @@ export function bossLevel(id: BossId): LevelConfig {
         startDir: 'R',
         startLength: GRUB.startLength,
         fruitCount: 2,
-        stepMs: 125,
+        stepMs: 150,
         boss: 'grub',
-        hint: "YOU CAN'T EAT HIM. COIL AROUND HIM!",
+        hint: "YOU CAN'T EAT HIM.\nCOIL AROUND HIM!",
       };
   }
 }

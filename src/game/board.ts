@@ -1,6 +1,9 @@
-/** The playfield: a fixed 24×18 grid in every level, so levels play identically on every device. */
-export const BOARD_W = 24;
-export const BOARD_H = 18;
+/**
+ * The playfield: a fixed 20×15 grid in every level, so levels play identically on every device.
+ * (Started at 24×18; play-testing showed the cells were too small and coiling too hard.)
+ */
+export const BOARD_W = 20;
+export const BOARD_H = 15;
 
 export type Dir = 'U' | 'D' | 'L' | 'R';
 

@@ -1,8 +1,8 @@
 import { Board, Cell, cellKey, manhattan, sameCell } from '../board';
-import { checkCoil } from '../coil';
+import { checkCoil, windingDegrees } from '../coil';
 import type { Blocker } from '../collision';
 import { BossBar, BossController, BossEvent, BossWorld, byHits, easedLonger, easedSlower, warnTime } from './bossKit';
-import { GRUB } from './tuning';
+import { GRUB, TRAPPED_BONUS_MAX } from './tuning';
 
 /**
  * GRUB THE MOLE (Ch3): teaches TIMING.
@@ -31,6 +31,10 @@ export interface GrubState {
   mounds: Mound[];
   /** Seconds in the current mode (for animation). */
   age: number;
+  /** Extra seconds granted this appearance because Pip had him half-wrapped. */
+  bonus: number;
+  /** Length of the current appearance (for the countdown bar). */
+  upFor: number;
 }
 
 export interface GrubOptions {
@@ -67,6 +71,8 @@ export class Grub implements BossController {
       moundOnDive: false,
       mounds: [],
       age: 0,
+      bonus: 0,
+      upFor: 0,
     };
     this.maxHealth = health;
   }
@@ -107,7 +113,10 @@ export class Grub implements BossController {
     };
     for (const allowLast of [false, true]) {
       const options = this.board.holes.map((_, i) => i).filter((i) => ok(i, allowLast));
-      if (options.length) return w.rng.pick(options);
+      if (!options.length) continue;
+      // Prefer holes Pip can actually reach in time.
+      const near = options.filter((i) => manhattan(this.board.holes[i], w.head) <= GRUB.preferHoleDist);
+      return w.rng.pick(near.length ? near : options);
     }
     return -1;
   }
@@ -142,10 +151,19 @@ export class Grub implements BossController {
           break;
         }
         this.setMode('up', easedLonger(byHits(this.upTime, s.hits), w.mercy));
+        s.bonus = 0;
+        s.upFor = s.timer;
         ev.push({ type: 'surface', at: h, who: this.label });
         break;
       }
       case 'up':
+        if (this.halfWrapped(w) && s.bonus < TRAPPED_BONUS_MAX) {
+          // Pip is mid-coil: he panics instead of escaping.
+          s.timer = 0.25;
+          s.bonus += 0.25;
+          s.upFor += 0.25;
+          break;
+        }
         s.moundOnDive = s.hits >= 1;
         this.setMode('diving', 0.35);
         ev.push({ type: 'burrow', at: this.holeCell!, who: this.label });
@@ -168,6 +186,13 @@ export class Grub implements BossController {
       }
     }
     return ev;
+  }
+
+  /** Is Pip partway round him (a third of a lap or more)? Then he panics instead of escaping. */
+  halfWrapped(w: BossWorld): boolean {
+    const h = this.holeCell;
+    if (!h) return false;
+    return windingDegrees(w.snake, h) >= 120;
   }
 
   afterStep(w: BossWorld): BossEvent[] {

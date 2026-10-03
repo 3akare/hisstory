@@ -32,7 +32,7 @@ async function boot(): Promise<void> {
 
   window.__HISSTORY__ = () => {
     const s = app.scenes.current;
-    const info: Record<string, unknown> = { scene: s?.name, top: app.scenes.top?.name };
+    const info: Record<string, unknown> = { scene: s?.name, top: app.scenes.top?.name, layout: app.renderer.layout };
     if (s instanceof PlayScene) {
       info.state = s.state;
       info.length = s.world.snake.cells.length;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { BOARD_W, Cell, parseBoard } from '../../src/game/board';
-import { checkCoil, ringAround } from '../../src/game/coil';
+import { BOARD_H, BOARD_W, Cell, parseBoard } from '../../src/game/board';
+import { checkCoil, COIL_DEGREES, ringAround, sealedIn, windingDegrees } from '../../src/game/coil';
+import { TRAPPED_BONUS_MAX } from '../../src/game/bosses/tuning';
 import { Grub } from '../../src/game/bosses/grub';
 import { BossWorld } from '../../src/game/bosses/bossKit';
 import { GRUB } from '../../src/game/bosses/tuning';
@@ -31,10 +32,43 @@ describe('coil detection', () => {
     expect(checkCoil(open, loop, [{ x: 10, y: 8 }], 16).coiled).toBe(true);
   });
 
-  it('an open ring is not a coil', () => {
+  it('circling most of the way round counts, even with a gap (no precision needed)', () => {
     const ring = ringAround(10, 8);
-    ring.splice(1, 1); // knock out the cell directly above the boss
-    expect(checkCoil(open, ring, [{ x: 10, y: 8 }], 16).coiled).toBe(false);
+    ring.splice(1, 1); // a gap right above the boss
+    expect(checkCoil(open, ring, [{ x: 10, y: 8 }], 16).coiled).toBe(true);
+  });
+
+  it('a big loose circle far from the boss counts too', () => {
+    const big = ringAround(7, 4, 6, 6); // 8×8 loop with the boss in the middle
+    expect(windingDegrees(big, { x: 10, y: 7 })).toBeGreaterThan(COIL_DEGREES);
+    expect(checkCoil(open, big, [{ x: 10, y: 7 }], 16).coiled).toBe(true);
+  });
+
+  it('three-quarters of a lap is not yet a coil', () => {
+    // Around (10,8): from the left side, over the top, down the right, along the bottom to the middle.
+    const arc: Cell[] = [
+      { x: 10, y: 9 },
+      { x: 11, y: 9 },
+      { x: 11, y: 8 },
+      { x: 11, y: 7 },
+      { x: 10, y: 7 },
+      { x: 9, y: 7 },
+      { x: 9, y: 8 },
+    ];
+    const deg = windingDegrees(arc, { x: 10, y: 8 });
+    expect(deg).toBeLessThan(COIL_DEGREES);
+    expect(deg).toBeGreaterThan(200);
+    expect(checkCoil(open, arc, [{ x: 10, y: 8 }], 0).coiled).toBe(false);
+  });
+
+  it('going out and back the same way cancels out', () => {
+    const zig: Cell[] = [
+      { x: 9, y: 7 },
+      { x: 10, y: 7 },
+      { x: 11, y: 7 },
+      { x: 12, y: 7 },
+    ];
+    expect(windingDegrees([...zig, ...[...zig].reverse()], { x: 10, y: 8 })).toBeLessThan(1);
   });
 
   it('pinning the boss against the arena wall counts', () => {
@@ -51,14 +85,14 @@ describe('coil detection', () => {
 
   it('cutting the board in half is not a coil (pocket too big)', () => {
     const wall: Cell[] = [];
-    for (let y = 0; y < 18; y++) wall.push({ x: 12, y });
+    for (let y = 0; y < 15; y++) wall.push({ x: 12, y });
     expect(checkCoil(open, wall, [{ x: 5, y: 5 }], 16).coiled).toBe(false);
   });
 
-  it('a slightly loose loop within maxPocket counts', () => {
+  it('sealed-in pockets respect maxPocket', () => {
     const ring = ringAround(10, 8, 3, 3); // 3×3 pocket = 9 cells
-    expect(checkCoil(open, ring, [{ x: 11, y: 9 }], 16).coiled).toBe(true);
-    expect(checkCoil(open, ring, [{ x: 11, y: 9 }], 8).coiled).toBe(false);
+    expect(sealedIn(open, ring, [{ x: 11, y: 9 }], 16).coiled).toBe(true);
+    expect(sealedIn(open, ring, [{ x: 11, y: 9 }], 8).coiled).toBe(false);
   });
 
   it('walls alone never count without Pip in the seal', () => {
@@ -96,7 +130,7 @@ describe('Grub', () => {
     expect(warn).toBeGreaterThanOrEqual(0.8);
   });
 
-  it('stays up 4 s, then 3.5 s and 3 s as he takes hits', () => {
+  it('stays up 7 s, then 6 s and 5 s as he takes hits', () => {
     const board = parseBoard(GRUB.map);
     const g = new Grub(board);
     const w = bossWorld(farSnake);
@@ -109,7 +143,7 @@ describe('Grub', () => {
       const ev = g.afterStep({ ...w, snake: ringAround(h.x, h.y), head: ringAround(h.x, h.y)[0] });
       expect(ev[0]).toMatchObject({ type: 'coiled' });
     }
-    expect(upTimes.map((t) => Math.round(t * 10) / 10)).toEqual([4, 3.5, 3]);
+    expect(upTimes.map((t) => Math.round(t * 10) / 10)).toEqual([7, 6, 5]);
     expect(g.defeated()).toBe(true);
   });
 
@@ -149,6 +183,36 @@ describe('Grub', () => {
     expect(g.blockers().some((b) => b.cause === 'hazard' && b.hits(h))).toBe(true);
     runUntil(g, w, () => g.s.mounds.length === 0, 6);
     expect(g.s.mounds).toHaveLength(0);
+  });
+
+  it('panics instead of diving while Pip is partway round him, but only for a while', () => {
+    const g = new Grub(parseBoard(GRUB.map));
+    const w = bossWorld(farSnake);
+    runUntil(g, w, () => g.s.mode === 'up');
+    const h = g.holeCell!;
+    // Half a lap around him.
+    const half: Cell[] = [
+      { x: h.x - 1, y: h.y + 1 },
+      { x: h.x - 1, y: h.y },
+      { x: h.x - 1, y: h.y - 1 },
+      { x: h.x, y: h.y - 1 },
+      { x: h.x + 1, y: h.y - 1 },
+    ];
+    const wrapped = { ...w, snake: half, head: half[half.length - 1] };
+    const stayed = runUntil(g, wrapped, () => g.s.mode !== 'up', 30);
+    expect(stayed).toBeGreaterThan(GRUB.upTime[0] + TRAPPED_BONUS_MAX - 0.3);
+    expect(stayed).toBeLessThan(GRUB.upTime[0] + TRAPPED_BONUS_MAX + 0.3);
+  });
+
+  it('prefers holes Pip can reach in time', () => {
+    const board = parseBoard(GRUB.map);
+    for (let seed = 1; seed < 30; seed++) {
+      const g = new Grub(board);
+      const w = bossWorld([{ x: 1, y: 1 }, { x: 0, y: 1 }], new Rng(seed));
+      runUntil(g, w, () => g.s.mode === 'telegraph');
+      const h = g.holeCell!;
+      expect(Math.abs(h.x - 1) + Math.abs(h.y - 1)).toBeLessThanOrEqual(GRUB.preferHoleDist);
+    }
   });
 
   it('hidden mercy gives longer warnings and longer windows', () => {
@@ -199,7 +263,7 @@ describe('lives', () => {
 describe('respawn placement', () => {
   it('lays a long snake out without overlapping walls or itself', () => {
     const board = parseBoard(GRUB.map);
-    const blocked = (x: number, y: number) => x < 0 || y < 0 || x >= BOARD_W || y >= 18 || board.holes.some((h) => h.x === x && h.y === y);
+    const blocked = (x: number, y: number) => x < 0 || y < 0 || x >= BOARD_W || y >= BOARD_H || board.holes.some((h) => h.x === x && h.y === y);
     const s = placeSnake(GRUB.start, 'R', 30, blocked);
     expect(s.cells).toHaveLength(30);
     const keys = new Set(s.cells.map((c) => `${c.x},${c.y}`));

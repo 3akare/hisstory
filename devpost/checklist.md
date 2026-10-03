@@ -10,7 +10,7 @@ Build mode: fast
 ## Slices
 
 - [x] **1. You can play a round of Classic Snake**
-  Becomes usable: Run `npm run dev`, open the page, and a crisp pixel snake moves around a 24×18 board with WASD or the arrows. It eats glowing fruit, grows, speeds up every 5 fruit, and dies on walls or its own body. Press a key to restart. Particles burst when you eat, the screen shakes on death, and movement is smoothly interpolated.
+  Becomes usable: Run `npm run dev`, open the page, and a crisp pixel snake moves around a 20×15 board with WASD or the arrows. It eats glowing fruit, grows, speeds up every 5 fruit, and dies on walls or its own body. Press a key to restart. Particles burst when you eat, the screen shakes on death, and movement is smoothly interpolated.
   Why now: This proves the whole foundation on the first slice: the scaffold, TypeScript 7 + Vite 8 + Vitest tooling (a spec risk), the fixed-timestep loop, the Canvas renderer with whole-number scaling, the input buffer, and the pure game rules. Every later slice lands on this.
   PRD ref: `prd.md > Classic Mode`, `prd.md > Controls`, `prd.md > Look and Feel`
   Spec ref: `spec.md > Stack`, `spec.md > Game Loop (engine/loop.ts)`, `spec.md > Renderer (engine/renderer.ts)`, `spec.md > Input (engine/input.ts)`, `spec.md > Board, Snake and Movement (game/board.ts, game/snake.ts)`, `spec.md > Collisions (game/collision.ts)`, `spec.md > Fruit (game/fruit.ts)`, `spec.md > Effects (engine/fx.ts)`, `spec.md > File Structure`
@@ -101,7 +101,7 @@ Build mode: fast
 
 ## Hands-on Checkpoints
 
-- [ ] Early usable behavior explored: after slice 2 (does coil to conquer feel fair and fun? Feedback shapes all later bosses)
+- [x] Early usable behavior explored: after slice 2 (does coil to conquer feel fair and fun? Feedback shapes all later bosses)
 - [ ] Milestone 1 explored: after slice 5 (the full submittable game, end to end, including resume)
 - [ ] Final kick-the-tires exploration and feedback completed
 
@@ -126,3 +126,4 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 - Playwright uses the installed Google Chrome locally (`channel: 'chrome'`) and Playwright's Chromium in CI, and `@types/node` was added for the config. TypeScript 7 works with Vite 8 and Vitest 5, so the 5.9 fallback wasn't needed.
 - Debug invincibility also auto-steers away from walls. The e2e test showed that "bosses can't hurt you" alone still lets the snake die on a wall and freeze the fight, which blocks testing and demo recording.
 - Boss timers run on the fixed 1/120 s update, not on snake steps. The fixed timestep already makes them deterministic, and seconds map directly onto the PRD's tuning numbers.
+- Checkpoint after slice 2: the learner found coiling far too hard ("it requires too much precision"). Changes: the board went from 24×18 to 20×15 so cells are bigger, and scaling now fills the window in quarter steps instead of wasting space. The coil rule became **circling ~300° around the boss** (winding angle), with the old sealed-pocket check kept for wall pins. Grub stays up 7/6/5 s instead of 4/3.5/3, warns for 1.5 s, prefers reachable holes, and panics instead of diving while you're partway round him. The boss snake is slower (150 ms per step), you start the fight at length 10, and a coil progress ring was added. `scope.md`, `prd.md` and `spec.md` are updated to match. The learner confirmed: "it's fine now."

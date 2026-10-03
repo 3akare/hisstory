@@ -64,7 +64,7 @@ No game engine: this was the agent's recommendation, which the learner accepted.
 ## Look and Feel
 From `prd.md > Look and Feel` and `scope.md > Inspiration & Identity`, applied to Canvas:
 
-- **Pixel grid:** art is authored at **8×8 px per tile**, and the board is a fixed **24×18 cells** in every level, so levels play the same on every device. The canvas is scaled up by a **whole-number factor** (`imageSmoothingEnabled = false`, CSS `image-rendering: pixelated`) so pixels stay sharp squares. Leftover space is filled with the biome's darkest colour.
+- **Pixel grid:** art is authored at **8×8 px per tile**, and the board is a fixed **20×15 cells** in every level, so levels play the same on every device (changed from 24×18 after play-testing; see the checklist's Revisions). The canvas is scaled up by a **whole-number factor** (`imageSmoothingEnabled = false`, CSS `image-rendering: pixelated`) so pixels stay sharp squares. Leftover space is filled with the biome's darkest colour.
 - **Layout:** in landscape, the board is centred with the HUD bar above it. In portrait (phones), the board is at the top, the HUD above it, and the **on-screen d-pad** in the lower third.
 - **Palettes:** one 8–12 colour palette per biome, as listed in the PRD (Orchard greens and reds through to the King's violet and bone). It's stored in `art/palettes.ts`, and sprites reference palette slots, not hex codes, so the same sprite re-skins per biome.
 - **Polish ("beautiful Minecraft"):**
@@ -148,7 +148,7 @@ Synthesised one-shots: eat, poison, portal, hit wall, life lost, coil hit, boss 
 ### Game Rules (pure TypeScript, no drawing)
 
 #### Board, Snake and Movement (`game/board.ts`, `game/snake.ts`)
-- The board is 24×18 cells plus per-level walls and obstacles.
+- The board is 20×15 cells plus per-level walls and obstacles.
 - The snake is an ordered list of cells, head first. A step moves the head by the current direction. Growing means not removing the tail that step.
 - The step speed comes from the mode, the chapter, and Classic's +speed every 5 fruit.
 
@@ -173,12 +173,11 @@ PRD ref: `prd.md > Classic Mode`, `prd.md > Story: Normal Chapters`.
 Each twist is a small module with hooks into the step and the draw. PRD ref: `prd.md > Story Script`.
 
 #### Coil Detection (`game/coil.ts`)
-This is the kernel, so it's specified exactly. After every snake step in a boss fight:
-1. Mark as **blocked**: all of Pip's body cells, the board edges and walls, and solid obstacles.
-2. **Flood fill** (breadth-first, 4-directional) from the boss's cells through everything not blocked. Boss cells, holes, fruit and Viper's body don't block.
-3. The boss is **coiled** if the filled pocket is **small**: no more than the boss's `maxPocket` (Grub: 16 cells, the King: 30, the Viper head: 12).
+This is the kernel, so it's specified exactly. After every snake step in a boss fight, a coil counts if **either** of these is true:
+1. **Circling (the main, forgiving rule):** walk Pip's body from tail to head and add up how far it sweeps around the boss's centre (the winding angle). **300° or more** (most of a lap) is a coil, at any distance, gaps and all. This changed after play-testing: the learner found sealing every cell needed "too much precision".
+2. **Sealed in (wall pins):** Pip's body plus walls trap the boss in a pocket of at most `maxPocket` cells (flood fill from the boss, 4-directional). This keeps "pin him against the wall" working.
 
-Edges count as walls, so pinning a boss against the arena wall works, which is the PRD's "body plus walls" rule. The pocket-size limit stops "half the board" from counting as a coil. This runs in well under 1 ms on a 24×18 board.
+While Pip is a third of the way round (120°+), the boss panics instead of escaping, for up to 4 extra seconds (`TRAPPED_BONUS_MAX`). A 12-dot **progress ring** around the boss lights up as you circle. Both checks run in well under 1 ms.
 PRD ref: `prd.md > Story: Coil to Conquer (Boss Fights)`.
 
 #### Lives, Score and Checkpoints (`game/lives.ts`, `game/progress.ts`)
@@ -355,7 +354,7 @@ hisstory/
 - **Unfair instant death** (portal exits, respawn, resume) → every placement goes through a "safe cell" check (3 free cells ahead), and every return to play pauses until input or a 3-2-1 countdown.
 
 ## What Was Simplified and Why
-- **Fixed 24×18 board everywhere** instead of boards that fit each device. Levels play identically everywhere, and balancing only happens once. The fuller version would need per-aspect level layouts.
+- **Fixed 20×15 board everywhere** instead of boards that fit each device. Levels play identically everywhere, and balancing only happens once. The fuller version would need per-aspect level layouts.
 - **Code-drawn sprites and code-composed music** instead of commissioned art and audio. Everything is original, licence-free and tiny, and it serves the learning goals. The fuller version would need an artist and a composer.
 - **localStorage only** instead of accounts and cloud saves. Nothing in the kernel needs a server (`prd.md > Deferred From the POC`).
 - **Classic runs aren't resumable**, which matches arcade convention. Story is fully resumable.
@@ -373,7 +372,7 @@ Nothing in the kernel is faked: story, revenge chain and coil to conquer are all
 
 **Agent-derived implementation details**
 - A fixed-timestep loop at 120 Hz with interpolated rendering.
-- Coil = a flood-filled pocket at or under `maxPocket` cells.
+- Coil = winding angle ≥ 300° around the boss, or a sealed pocket at or under `maxPocket` cells.
 - Seeded RNG, bosses as state machines, all tuning in one file.
 - All UI drawn on the canvas (no DOM menus).
 

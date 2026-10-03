@@ -3,18 +3,43 @@ import { BOARD_H, BOARD_W, Board, Cell, cellKey, isWall } from './board';
 /**
  * COIL TO CONQUER: the heart of HISSTORY.
  *
- * A boss is "coiled" when it is sealed inside a small pocket of the board that
- * it cannot get out of. The walls of the pocket are Pip's body plus the arena's
- * walls/edges, so pinning a boss against a wall counts.
+ * A coil means GOING AROUND the boss. Two ways count, checked after every step:
  *
- * How we check it, after every snake step:
- *   1. Every cell of Pip's body (and every wall) is BLOCKED.
- *   2. Flood fill from the boss's cells through everything that isn't blocked.
- *   3. If the fill runs out of room before it gets bigger than `maxPocket`,
- *      the boss is sealed in: that's a coil.
- * Without a snake wall around the boss, the fill spreads across the whole
- * board and blows past `maxPocket`, so nothing counts by accident.
+ *  A. CIRCLING (the main one, forgiving): walk along Pip's body from tail to
+ *     head and add up how far it turns around the boss, like a clock hand
+ *     sweeping. Most of a full lap (COIL_DEGREES) counts. No precision needed:
+ *     gaps, loose loops and wobbly circles all work.
+ *
+ *  B. SEALED IN (for wall pins): Pip's body plus the arena walls trap the boss
+ *     in a small pocket. Flood fill from the boss through everything that isn't
+ *     body or wall; if the fill stays at or under `maxPocket` cells, he's sealed.
  */
+/** How much of a lap around the boss counts as a coil (360 = a full circle). */
+export const COIL_DEGREES = 300;
+
+/**
+ * How many degrees Pip's body sweeps around `center`, following the body from
+ * tail to head. Going round once is ±360; going out and back cancels out.
+ */
+export function windingDegrees(snakeCells: readonly Cell[], center: { x: number; y: number }): number {
+  let total = 0;
+  let prev: number | null = null;
+  for (let i = snakeCells.length - 1; i >= 0; i--) {
+    const c = snakeCells[i];
+    const dx = c.x - center.x;
+    const dy = c.y - center.y;
+    if (dx === 0 && dy === 0) continue;
+    const a = Math.atan2(dy, dx);
+    if (prev !== null) {
+      let d = a - prev;
+      while (d > Math.PI) d -= 2 * Math.PI;
+      while (d < -Math.PI) d += 2 * Math.PI;
+      total += d;
+    }
+    prev = a;
+  }
+  return Math.abs((total * 180) / Math.PI);
+}
 export interface CoilResult {
   coiled: boolean;
   /** The pocket cells (only filled in when coiled), for the highlight effect. */
@@ -24,6 +49,18 @@ export interface CoilResult {
 export function checkCoil(board: Board, snakeCells: readonly Cell[], target: readonly Cell[], maxPocket: number): CoilResult {
   const none: CoilResult = { coiled: false, pocket: [] };
   if (!target.length) return none;
+  // A. Circling: measured around the middle of the boss.
+  const center = {
+    x: target.reduce((s, c) => s + c.x, 0) / target.length,
+    y: target.reduce((s, c) => s + c.y, 0) / target.length,
+  };
+  if (windingDegrees(snakeCells, center) >= COIL_DEGREES) return { coiled: true, pocket: [...target] };
+  return sealedIn(board, snakeCells, target, maxPocket);
+}
+
+/** B. Sealed in by body + walls (see above). */
+export function sealedIn(board: Board, snakeCells: readonly Cell[], target: readonly Cell[], maxPocket: number): CoilResult {
+  const none: CoilResult = { coiled: false, pocket: [] };
   const body = new Set<number>();
   for (const c of snakeCells) body.add(cellKey(c.x, c.y));
 

@@ -10,13 +10,10 @@ test('classic: the snake moves, then crashes into the wall and shows game over',
   if (testInfo.project.name === 'mobile') {
     // Tap the right arrow of the on-screen d-pad.
     const box = (await page.locator('#game').boundingBox())!;
-    const layout = await page.evaluate(() => {
-      const c = document.getElementById('game') as HTMLCanvasElement;
-      return { w: c.width, h: c.height };
-    });
-    expect(layout.h).toBeGreaterThan(layout.w); // portrait layout
-    // Portrait layout: logical 208×370, d-pad centre (104, 286), radius 54.
-    await page.mouse.click(box.x + (box.width * (104 + 34)) / 208, box.y + (box.height * 286) / 370);
+    const L = (await info(page)).layout as { w: number; h: number; portrait: boolean; dpad: { cx: number; cy: number; r: number } };
+    expect(L.portrait).toBe(true);
+    // Tap the right arm of the on-screen d-pad.
+    await page.mouse.click(box.x + (box.width * (L.dpad.cx + L.dpad.r * 0.6)) / L.w, box.y + (box.height * L.dpad.cy) / L.h);
   } else {
     await page.keyboard.press('KeyD');
   }

@@ -5,8 +5,8 @@ import { BOARD_H, BOARD_W } from '../game/board';
 
 /** Art is authored at 8×8 pixels per board cell. */
 export const TILE = 8;
-export const BOARD_PX_W = BOARD_W * TILE; // 192
-export const BOARD_PX_H = BOARD_H * TILE; // 144
+export const BOARD_PX_W = BOARD_W * TILE; // 160
+export const BOARD_PX_H = BOARD_H * TILE; // 120
 
 export interface Layout {
   /** Logical (art-pixel) size of the whole screen. */
@@ -85,7 +85,11 @@ export class Renderer {
     this.layout = computeLayout(portrait, this.touch);
     this.dpr = window.devicePixelRatio || 1;
     const fit = Math.min((vw * this.dpr) / this.layout.w, (vh * this.dpr) / this.layout.h);
-    this.scale = fit >= 1 ? Math.floor(fit) : fit;
+    // Whole-number scaling keeps every pixel the same size. If that would waste
+    // more than ~8% of the screen, use quarter steps instead so the game stays big.
+    let scale = Math.max(1, Math.floor(fit));
+    if (fit >= 1 && fit / scale > 1.08) scale = Math.floor(fit * 4) / 4;
+    this.scale = fit >= 1 ? scale : fit;
     this.canvas.width = Math.round(this.layout.w * this.scale);
     this.canvas.height = Math.round(this.layout.h * this.scale);
     this.canvas.style.width = `${this.canvas.width / this.dpr}px`;
@@ -200,8 +204,8 @@ export class Renderer {
 
 export function computeLayout(portrait: boolean, touch: boolean): Layout {
   if (portrait) {
-    const w = 208;
-    const h = 370;
+    const w = 176;
+    const h = 320;
     return {
       w,
       h,
@@ -210,19 +214,19 @@ export function computeLayout(portrait: boolean, touch: boolean): Layout {
       boardX: (w - BOARD_PX_W) / 2,
       boardY: 40,
       hudY: 22,
-      dpad: touch ? { cx: w / 2, cy: 286, r: 54 } : null,
+      dpad: touch ? { cx: w / 2, cy: 240, r: 48 } : null,
     };
   }
-  const w = 320;
-  const h = 180;
+  const w = 272;
+  const h = 153;
   return {
     w,
     h,
     portrait,
     touch,
     boardX: (w - BOARD_PX_W) / 2,
-    boardY: 30,
-    hudY: 12,
-    dpad: touch ? { cx: 32, cy: 128, r: 28 } : null,
+    boardY: 27,
+    hudY: 9,
+    dpad: touch ? { cx: 28, cy: 104, r: 24 } : null,
   };
 }

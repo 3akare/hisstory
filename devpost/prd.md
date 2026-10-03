@@ -99,7 +99,7 @@ Source: `scope.md > The Core Loop`.
 Source: `scope.md > The Unique Kernel`.
 - [ ] Bosses **cannot be eaten**. Touching a boss costs a life.
 - [ ] Fruit keeps spawning in boss arenas so the player can grow long enough to coil.
-- [ ] A **coil** happens when the boss is completely sealed in, so it has no open path out. The seal can be made from the snake's body alone, or from the body **plus the arena walls**. Pinning a boss against a wall counts, which keeps coiling learnable. **(recommended definition)**
+- [ ] A **coil** means **going around the boss**: circling him most of the way (about five-sixths of a lap) counts, at any distance, without needing a perfect seal. Pinning a boss against a wall with your body also counts. A ring of dots around the boss lights up as you circle. (Revised after the learner's play-test: "it requires too much precision".)
 - [ ] A successful coil: the boss flashes, screen shake, a hit sound, and the boss health bar drops one notch. The boss then breaks free (the snake isn't harmed) and changes position.
 - [ ] Bosses have several health notches: Grub 3, Mira 3 + Grub 3, Viper 4, Hollow King 3 per phase × 3 phases. **(recommended)** Full behaviours are in **Boss Design and Difficulty**.
 - [ ] A boss at zero health plays a defeat animation, then the outro cutscene with the revenge reveal.
@@ -127,8 +127,8 @@ The learner's brief: bosses should be hard enough to respect but never so hard t
 - [ ] **Target fight length:** about 1.5–3 minutes per boss, about 5 minutes for the Hollow King.
 
 **Grub the Mole: Ch3, 3 health ("timing")**
-- [ ] The arena has 6 visible holes. Dirt shakes at a hole for 1 second, then Grub pops up there.
-- [ ] He stays up about 4 seconds (3.5 s after 1 hit, 3 s after 2 hits), then burrows. A coil that seals before he burrows lands a hit.
+- [ ] The arena has 6 visible holes. Dirt shakes at a hole for 1.5 seconds, then Grub pops up there, usually somewhere you can reach in time.
+- [ ] He stays up about 7 seconds (6 s after 1 hit, 5 s after 2 hits), then burrows, and he won't dive while you're partway round him. A coil before he burrows lands a hit. (Eased after play-testing.)
 - [ ] After his first hit, burrowing leaves a dirt mound for 5 seconds, which acts as a temporary wall.
 - [ ] Touching Grub costs a life.
 

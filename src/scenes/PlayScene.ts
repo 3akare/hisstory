@@ -3,7 +3,7 @@ import { SPRITES } from '../art/sprites';
 import { Scene } from '../engine/scenes';
 import { Action, ACTION_DIR, dpadDir, PointerInfo } from '../engine/input';
 import { Fx } from '../engine/fx';
-import { BOARD_PX_W, TILE } from '../engine/renderer';
+import { BOARD_PX_H, BOARD_PX_W, TILE } from '../engine/renderer';
 import type { App } from '../app';
 import { Cell, Dir, isWall, OPPOSITE, parseBoard, sameCell } from '../game/board';
 import { checkCollision } from '../game/collision';
@@ -381,7 +381,7 @@ export class PlayScene extends Scene {
     this.drawHud();
     drawBoard(r, this.world.board, this.level.biome, this.t);
     drawFruit(r, this.world.fruits, this.t, this.level.biome);
-    if (this.boss) drawBoss(r, this.boss, this.t);
+    if (this.boss) drawBoss(r, this.boss, this.t, this.world.snake.cells);
 
     const alpha = this.state === 'playing' ? Math.min(1, this.stepAcc / this.stepMs) : this.state === 'ready' && !this.respawning ? 1 : 0;
     let look = PIP_LOOK;
@@ -414,12 +414,13 @@ export class PlayScene extends Scene {
       return;
     }
     r.sprite('heart', SPRITES.heart, L.boardX, L.hudY + 1);
-    r.text(`x${this.lives.lives}`, L.boardX + 9, L.hudY, { color: '#fff1e8' });
-    r.text(String(this.lives.score).padStart(4, '0'), L.boardX + 40, L.hudY, { color: BASE.Y });
+    r.text(`x${this.lives.lives}`, L.boardX + 8, L.hudY, { color: '#fff1e8' });
+    r.text(String(this.lives.score).padStart(4, '0'), L.boardX + 34, L.hudY, { color: BASE.Y });
     if (this.boss) {
       const bars = this.boss.bars();
-      const w = 108 / bars.length;
-      bars.forEach((b, i) => drawMeter(r, L.boardX + BOARD_PX_W - 108 + i * w, L.hudY, w - (bars.length > 1 ? 4 : 0), b.health, b.max, b.color, bars.length > 1 ? undefined : b.label));
+      const area = 88;
+      const w = area / bars.length;
+      bars.forEach((b, i) => drawMeter(r, L.boardX + BOARD_PX_W - area + i * w, L.hudY, w - (bars.length > 1 ? 3 : 0), b.health, b.max, b.color, bars.length > 1 ? undefined : b.label));
     }
   }
 
@@ -447,30 +448,31 @@ export class PlayScene extends Scene {
     const r = this.app.renderer;
     const L = r.layout;
     const cx = L.boardX + BOARD_PX_W / 2;
-    const cy = L.boardY + 72;
+    const cy = L.boardY + BOARD_PX_H / 2;
+    const pw = 152;
     const blink = Math.floor(this.t * 2) % 2 === 0;
     const go = L.touch ? 'TAP TO CONTINUE' : 'PRESS ENTER';
 
     if (this.state === 'ready') {
       if (this.respawning) {
-        if (this.stateTime >= RESPAWN_BLINK && blink) r.text(L.touch ? 'TAP AN ARROW' : 'PRESS A DIRECTION', cx, L.boardY + 124, { align: 'center' });
+        if (this.stateTime >= RESPAWN_BLINK && blink) r.text(L.touch ? 'TAP AN ARROW' : 'PRESS A DIRECTION', cx, L.boardY + BOARD_PX_H - 14, { align: 'center' });
       } else {
-        r.panel(cx - 84, cy - 14, 168, 28);
+        r.panel(cx - pw / 2, cy - 14, pw, 28);
         r.text(this.level.title, cx, cy - 8, { align: 'center', color: BASE.Y });
         if (blink) r.text(L.touch ? 'TAP AN ARROW' : 'PRESS A DIRECTION', cx, cy + 3, { align: 'center' });
       }
     } else if (this.state === 'dead' && this.stateTime > 0.5) {
-      r.panel(cx - 80, cy - 22, 160, 44);
+      r.panel(cx - pw / 2, cy - 22, pw, 44);
       r.text('GAME OVER', cx, cy - 15, { align: 'center', color: BASE.R });
       r.text(`SCORE ${this.world.points}`, cx, cy - 3, { align: 'center' });
       if (blink) r.text(L.touch ? 'TAP TO RETRY' : 'PRESS ENTER', cx, cy + 9, { align: 'center', color: '#c2c3c7' });
     } else if (this.state === 'out' && this.stateTime > 0.5) {
-      r.panel(cx - 84, cy - 22, 168, 44);
+      r.panel(cx - pw / 2, cy - 22, pw, 44);
       r.text('OUT OF LIVES', cx, cy - 15, { align: 'center', color: BASE.R });
       r.text('BACK TO CHECKPOINT', cx, cy - 3, { align: 'center' });
       if (blink) r.text(go, cx, cy + 9, { align: 'center', color: '#c2c3c7' });
     } else if (this.state === 'won' && this.stateTime > 0.8) {
-      r.panel(cx - 84, cy - 22, 168, 44);
+      r.panel(cx - pw / 2, cy - 22, pw, 44);
       const title = this.boss ? `${this.boss.bars()[0].label} DEFEATED!` : 'CHAPTER CLEAR!';
       r.text(title, cx, cy - 15, { align: 'center', color: BASE.Y });
       r.text(`SCORE ${this.lives.score}`, cx, cy - 3, { align: 'center' });
@@ -479,12 +481,14 @@ export class PlayScene extends Scene {
 
     if (this.hintTime > 0 && this.level.hint && (this.state === 'playing' || this.state === 'ready')) {
       const a = Math.min(1, this.hintTime * 2);
-      const w = r.measure(this.level.hint) + 12;
-      const y = L.boardY + 144 - 20;
+      const lines = this.level.hint.split('\n');
+      const w = Math.max(...lines.map((l) => r.measure(l))) + 12;
+      const h = lines.length * 10 + 5;
+      const y = L.boardY + BOARD_PX_H - h - 4;
       r.ctx.globalAlpha = a;
-      r.panel(cx - w / 2, y, w, 15, '#2a1a3a', BASE.Y, 0.9 * a);
+      r.panel(cx - w / 2, y, w, h, '#2a1a3a', BASE.Y, 0.9 * a);
       r.ctx.globalAlpha = 1;
-      r.text(this.level.hint, cx, y + 4, { align: 'center', color: BASE.Y, alpha: a });
+      lines.forEach((l, i) => r.text(l, cx, y + 4 + i * 10, { align: 'center', color: BASE.Y, alpha: a }));
     }
     if (this.invincible) r.text('INVINCIBLE', L.boardX + 2, L.boardY + 2, { color: BASE.C, size: 8 });
   }

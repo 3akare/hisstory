@@ -2,7 +2,7 @@ import { Rng } from '../engine/rng';
 import { BOARD_H, BOARD_W, Board, Cell, Dir, isWall, parseBoard } from './board';
 import { Blocker, checkCollision, CrashCause } from './collision';
 import { Fruit, fruitAt, randomFreeCell } from './fruit';
-import { advance, createSnake, nextHead, occupies, Snake } from './snake';
+import { advance, nextHead, occupies, placeSnake, Snake } from './snake';
 
 /**
  * Everything that happens in one snake step, so scenes can play the matching
@@ -23,7 +23,7 @@ export interface WorldOptions {
   seed?: number;
 }
 
-export const CLASSIC_START: Cell = { x: 8, y: 9 };
+export const CLASSIC_START: Cell = { x: 6, y: 7 };
 
 /**
  * The game state for one level: board, snake, fruit, score.
@@ -53,7 +53,8 @@ export class World {
     this.rng = new Rng(opts.seed);
     this.startHead = opts.start ?? CLASSIC_START;
     this.startDir = opts.startDir ?? 'R';
-    this.snake = createSnake(this.startHead, this.startDir, opts.startLength ?? 4);
+    // Lay the body out behind the head, folding if it would run into a wall.
+    this.snake = placeSnake(this.startHead, this.startDir, opts.startLength ?? 4, (x, y) => isWall(this.board, x, y));
     this.fruitCount = opts.fruitCount ?? 1;
     this.fillFruit();
   }
