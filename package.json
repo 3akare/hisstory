@@ -1,6 +1,7 @@
 {
   "name": "hisstory",
   "private": true,
+  "license": "MIT",
   "version": "0.1.0",
   "type": "module",
   "description": "HISSTORY: a retro Snake game with a story mode, rivals and coil-to-conquer boss fights.",

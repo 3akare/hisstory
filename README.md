@@ -56,3 +56,7 @@ Built with the Devpost Learn skill pack for the *Build With AI: Basics* hackatho
 - [`prd.md`](devpost/prd.md): what the game does, screen by screen
 - [`spec.md`](devpost/spec.md): the technical blueprint
 - [`checklist.md`](devpost/checklist.md): the build slices, play-test checkpoints and every plan revision
+
+## License
+
+[MIT](LICENSE) © 2026 3akare
