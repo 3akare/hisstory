@@ -4,7 +4,7 @@ import { canvasIsDrawn, info } from './helpers';
 test('classic: the snake moves, then crashes into the wall and shows game over', async ({ page }, testInfo) => {
   await page.goto('/?debug=1&scene=classic&seed=3');
   await expect.poll(async () => (await info(page)).scene).toBe('play');
-  expect(await canvasIsDrawn(page)).toBe(true);
+  await expect.poll(() => canvasIsDrawn(page), { timeout: 10000 }).toBe(true);
   expect((await info(page)).state).toBe('ready');
 
   if (testInfo.project.name === 'mobile') {

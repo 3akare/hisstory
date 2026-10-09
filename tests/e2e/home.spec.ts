@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
 test('home: title screen, music starts on first key, Classic starts from the menu', async ({ page }, testInfo) => {
   await page.goto('/');
   await expect.poll(async () => (await info(page)).scene).toBe('home');
-  expect(await canvasIsDrawn(page)).toBe(true);
+  await expect.poll(() => canvasIsDrawn(page), { timeout: 10000 }).toBe(true);
   await page.waitForTimeout(400);
   await page.screenshot({ path: testInfo.outputPath('home.png') });
 

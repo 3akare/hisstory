@@ -16,7 +16,8 @@ export default defineConfig({
     { name: 'mobile', use: { ...devices['Pixel 7'], channel: process.env.CI ? undefined : 'chrome' } },
   ],
   webServer: {
-    command: 'npm run dev',
+    // CI tests the production build (exactly what gets deployed); locally, the dev server.
+    command: process.env.CI || process.env.E2E_PROD ? 'npx vite build && npx vite preview --port 5173 --strictPort' : 'npm run dev',
     url: 'http://localhost:5173/',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

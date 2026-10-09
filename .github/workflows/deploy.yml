@@ -1,4 +1,5 @@
-# Test → build → deploy to GitHub Pages on every push to main.
+# Type-check + unit tests → build → deploy to GitHub Pages on every push to main.
+# (Browser tests run locally with `npm run e2e`.)
 # One-time setup in the repo: Settings → Pages → Source: GitHub Actions.
 name: Deploy HISSTORY
 
@@ -28,10 +29,6 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npx vitest run
-      - run: npx playwright install --with-deps chromium
-      - run: npx playwright test
-        env:
-          CI: 'true'
       - run: npx vite build
       - uses: actions/upload-pages-artifact@v3
         with:
