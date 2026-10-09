@@ -111,7 +111,11 @@ export class HomeScene extends Scene {
 
     const best = this.app.save.data.classic.best;
     if (!this.app.audio.unlocked && Math.floor(this.t * 1.5) % 2 === 0) {
-      r.text(L.touch ? 'TAP FOR SOUND' : 'PRESS ANY KEY FOR SOUND', cx, P.foot, { align: 'center', color: BASE.Y });
+      r.text(L.touch ? 'TAP FOR SOUND' : L.portrait ? 'PRESS A KEY FOR SOUND' : 'PRESS ANY KEY FOR SOUND', cx, P.foot, {
+        align: 'center',
+        color: BASE.Y,
+        ...(L.portrait ? { font: 'dialog' as const, size: 10 } : {}),
+      });
     }
     if (best > 0) r.text(`CLASSIC BEST ${best}`, cx, P.foot + 12, { align: 'center', color: '#83769c' });
     if (this.app.save.data.story.finished) {
