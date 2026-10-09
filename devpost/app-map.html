@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HISSTORY App Map</title>
+<style>
+  :root {
+    --bg: #f7f5f0; --panel: #ffffff; --ink: #1d1b26; --muted: #5b5670; --line: #ddd7cc;
+    --accent: #2f8a2a; --accent-2: #7a4fd6; --code-bg: #f0ece4; --hi: #fff3c4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12101a; --panel: #1b1826; --ink: #ece8f4; --muted: #a49cba; --line: #2e2a3d;
+      --accent: #6fdc55; --accent-2: #b495ff; --code-bg: #24202f; --hi: #3a3320;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12101a; --panel: #1b1826; --ink: #ece8f4; --muted: #a49cba; --line: #2e2a3d;
+    --accent: #6fdc55; --accent-2: #b495ff; --code-bg: #24202f; --hi: #3a3320;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.9rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h1 span { color: var(--accent); }
+  h2 { font-size: 1.2rem; margin: 40px 0 10px; }
+  p.lead { color: var(--muted); margin-top: 0; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin: 12px 0; }
+  code { font: 0.9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+  pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; font: 0.88em/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  ol.route { padding-left: 0; list-style: none; counter-reset: stop; }
+  ol.route > li { counter-increment: stop; position: relative; padding-left: 44px; margin: 18px 0; }
+  ol.route > li::before { content: counter(stop); position: absolute; left: 0; top: 2px; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--bg); font-weight: 700; display: grid; place-items: center; }
+  .path { font-weight: 600; }
+  .tag { display: inline-block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 0 8px; margin-left: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 0.85rem; }
+  details { margin: 8px 0; }
+  summary { cursor: pointer; font-weight: 600; }
+  summary:focus-visible, a:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+  .diagram { width: 100%; height: auto; display: block; }
+  .diagram text { font: 13px system-ui, sans-serif; fill: var(--ink); }
+  .diagram .small { font-size: 11px; fill: var(--muted); }
+  .diagram .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+  .diagram .box.hot { stroke: var(--accent); }
+  .diagram .box.store { stroke: var(--accent-2); stroke-dasharray: 4 3; }
+  .diagram .arrow { stroke: var(--muted); stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+  .diagram #arrowhead path { fill: var(--muted); }
+  .practice { border-left: 4px solid var(--accent); }
+  footer { margin-top: 48px; color: var(--muted); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>HI<span>SS</span>TORY: app map</h1>
+  <p class="lead">A short guide to how your game is put together and where to look when you want to change something. It's a snapshot of the code at commit <code>bd25b00</code>, so it can drift as the game changes.</p>
+
+  <h2>The big picture</h2>
+  <div class="card">
+    <p>HISSTORY is one web page with one <code>&lt;canvas&gt;</code>. There's no game engine and no server. Four kinds of code work together:</p>
+    <ul>
+      <li><strong>The engine</strong> (<code>src/engine/</code>): the game loop, drawing on the canvas, keyboard and touch input, and switching between screens.</li>
+      <li><strong>The rules</strong> (<code>src/game/</code>): the snake, fruit, collisions, coil detection, bosses, lives and chapters. This is plain TypeScript with no drawing in it, so it can be unit-tested and saved as JSON.</li>
+      <li><strong>The screens</strong> (<code>src/scenes/</code>): Home, Map, Cutscene, Play, Pause and so on. Each screen asks the rules what happened, then draws it and plays the sounds.</li>
+      <li><strong>Sound, art and story</strong> (<code>src/audio/</code>, <code>src/art/</code>, <code>src/story/</code>): a home-made chiptune synth, sprites written as text grids, and all the dialogue as data.</li>
+    </ul>
+    <p>Progress is saved in the browser's <code>localStorage</code> (<code>src/save/save.ts</code>).</p>
+  </div>
+
+  <h2>One action, end to end: you press D and Pip turns right</h2>
+  <div class="card">
+    <svg class="diagram" viewBox="0 0 800 300" role="img" aria-labelledby="dtitle ddesc">
+      <title id="dtitle">How a key press becomes a smooth snake move</title>
+      <desc id="ddesc">The key press goes to input.ts, which queues a turn in snake.ts. The game loop in loop.ts runs PlayScene.update at a fixed 120 times per second; when the snake's step timer fills, world.step moves the snake. Then drawSnake in draw.ts paints it between cells. Story progress is written to the save.</desc>
+      <defs><marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
+      <rect class="box" x="10" y="20" width="150" height="62" rx="8"/>
+      <text x="85" y="46" text-anchor="middle">Press D</text>
+      <text class="small" x="85" y="66" text-anchor="middle">engine/input.ts KEYMAP</text>
+      <rect class="box" x="220" y="20" width="170" height="62" rx="8"/>
+      <text x="305" y="46" text-anchor="middle">Turn is queued</text>
+      <text class="small" x="305" y="66" text-anchor="middle">game/snake.ts queueTurn</text>
+      <rect class="box hot" x="450" y="20" width="160" height="62" rx="8"/>
+      <text x="530" y="46" text-anchor="middle">Game loop tick</text>
+      <text class="small" x="530" y="66" text-anchor="middle">engine/loop.ts frame</text>
+      <rect class="box hot" x="450" y="130" width="160" height="62" rx="8"/>
+      <text x="530" y="156" text-anchor="middle">Snake clock fills</text>
+      <text class="small" x="530" y="176" text-anchor="middle">PlayScene.update → world.step</text>
+      <rect class="box hot" x="220" y="130" width="170" height="62" rx="8"/>
+      <text x="305" y="156" text-anchor="middle">Drawn between cells</text>
+      <text class="small" x="305" y="176" text-anchor="middle">scenes/draw.ts drawSnake</text>
+      <rect class="box" x="10" y="130" width="150" height="62" rx="8"/>
+      <text x="85" y="156" text-anchor="middle">You see Pip turn</text>
+      <text class="small" x="85" y="176" text-anchor="middle">smoothly, every frame</text>
+      <rect class="box store" x="450" y="230" width="160" height="56" rx="8"/>
+      <text x="530" y="254" text-anchor="middle">Saved progress</text>
+      <text class="small" x="530" y="272" text-anchor="middle">save/save.ts (localStorage)</text>
+      <path class="arrow" d="M160 51 H218"/>
+      <path class="arrow" d="M390 51 H448"/>
+      <path class="arrow" d="M530 82 V128"/>
+      <path class="arrow" d="M450 161 H392"/>
+      <path class="arrow" d="M220 161 H162"/>
+      <path class="arrow" d="M530 192 V228"/>
+    </svg>
+  </div>
+
+  <h2>The route <span class="tag">reference route</span></h2>
+  <p>Follow these in your editor. Each stop links what you see on screen to the code behind it.</p>
+  <ol class="route">
+    <li>
+      <span class="path">src/engine/loop.ts</span>: search for <code>private frame = </code>
+      <p><strong>The game loop.</strong> Real time is poured into <code>acc</code> and drained in fixed slices of <code>FIXED_DT</code> (1/120 s). Each slice runs one update, then the frame is drawn once. That's why Pip moves at the same speed on a 60 Hz phone and a 144 Hz monitor.</p>
+      <details><summary>The core of it</summary>
+<pre>this.acc += delta;
+while (this.acc &gt;= FIXED_DT) {
+  this.hooks.update(FIXED_DT);
+  this.acc -= FIXED_DT;
+}
+this.hooks.render();</pre></details>
+    </li>
+    <li>
+      <span class="path">src/scenes/PlayScene.ts</span>: search for <code>this.stepAcc += dt * 1000</code>
+      <p><strong>The snake's own clock.</strong> Inside the fixed updates, <code>stepAcc</code> fills up. Each time it passes <code>stepMs</code>, the rules run one <code>world.step()</code>. That's when your queued turn is applied, and when fruit, crashes and coils are checked.</p>
+    </li>
+    <li>
+      <span class="path">src/scenes/draw.ts</span>: search for <code>export function drawSnake</code>
+      <p><strong>Canvas.</strong> <code>alpha</code> is how far (0 to 1) we are between two steps. The head is drawn part-way between its last cell and its new one, and the body is a tube of rectangles, so movement looks smooth instead of jumping cell to cell.</p>
+    </li>
+  </ol>
+  <details class="card">
+    <summary>Bonus stop: Web Audio, the same idea for music</summary>
+    <p><span class="path">src/audio/sequencer.ts</span>: search for <code>private tick()</code>. A cheap 25 ms timer wakes up and schedules every note due in the next ~120 ms on the audio clock (<code>stepsDue</code>). Because notes are booked slightly ahead on that precise clock, the music never stutters, even when the game is busy. The songs themselves are note text in <code>src/audio/tracks/core.ts</code>.</p>
+  </details>
+
+  <h2>To change this, start here</h2>
+  <table>
+    <thead><tr><th>You want to…</th><th>Start in</th></tr></thead>
+    <tbody>
+      <tr><td>Make a boss easier or harder</td><td><code>src/game/bosses/tuning.ts</code> (every boss number is in this one file)</td></tr>
+      <tr><td>Change how forgiving a coil is</td><td><code>COIL_DEGREES</code> in <code>src/game/coil.ts</code> (currently 300° of a lap)</td></tr>
+      <tr><td>Edit a level layout, fruit target or hint</td><td><code>CHAPTERS</code> in <code>src/game/chapters.ts</code> (<code>#</code> wall, <code>o</code> hole, <code>~</code> ice, <code>=</code> gate)</td></tr>
+      <tr><td>Rewrite dialogue</td><td><code>SCRIPT</code> in <code>src/story/script.ts</code></td></tr>
+      <tr><td>Change a song</td><td><code>src/audio/tracks/core.ts</code> (16 steps per bar: note, <code>-</code> hold, <code>.</code> rest)</td></tr>
+      <tr><td>Change Classic's speed</td><td><code>classicStepMs</code> in <code>src/game/world.ts</code></td></tr>
+      <tr><td>Redraw a sprite</td><td><code>src/art/sprites.ts</code> and <code>src/art/portraits.ts</code> (one character per pixel)</td></tr>
+      <tr><td>Change what's saved</td><td><code>SaveData</code> and <code>validate</code> in <code>src/save/save.ts</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>A practice to reuse</h2>
+  <div class="card practice">
+    <p><strong>Play-test the risky core first, then pin the fix down with a rule you can test.</strong></p>
+    <p>The build put the kernel, coil to conquer, in slice 2, before any menus, music or story existed. The first hands-on check found it "too much precision". The fix didn't come from guessing. "A coil" was redefined as an observable rule, circling about 300° around the boss (<code>windingDegrees</code> in <code>src/game/coil.ts</code>), with unit tests in <code>tests/unit/coil.test.ts</code> that lock in what counts: gaps are fine, three-quarters of a lap isn't enough, and wall pins work. The PRD and spec were then updated to match.</p>
+    <p>On your next project, put the riskiest piece first, get your hands on it early, and when something "feels wrong", turn the fix into a sentence you can test.</p>
+  </div>
+
+  <h2>Run it again</h2>
+  <pre>npm install
+npm run dev        # http://localhost:5173
+npm test           # unit tests
+npm run e2e        # browser tests (desktop and phone sizes)
+npm run build      # the site, in dist/</pre>
+  <p>Debug shortcuts: <code>?debug=1&amp;chapter=N</code> jumps to any chapter. In debug mode, <kbd>I</kbd> toggles invincibility and <kbd>N</kbd> clears the level.</p>
+
+  <footer>Generated from the finished code at commit <code>bd25b00</code>. The planning documents are in this same <code>devpost/</code> folder.</footer>
+</main>
+</body>
+</html>

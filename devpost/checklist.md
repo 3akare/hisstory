@@ -103,23 +103,25 @@ Build mode: fast
 
 - [x] Early usable behavior explored: after slice 2 (does coil to conquer feel fair and fun? Feedback shapes all later bosses)
 - [x] Milestone 1 explored: after slice 5 (the full submittable game, end to end, including resume)
-- [ ] Final kick-the-tires exploration and feedback completed
+- [x] Final kick-the-tires exploration and feedback completed
 
 ## Final Review
 
-- [ ] Final review complete — feedback resolved and learner confirms ready to ship
+- [x] Final review complete — feedback resolved and learner confirms ready to ship
+
+Outcome: the learner played the whole game ("I have tested everything and it looks great"). No changes were requested. Optional, still open: a name in the credits (currently a generic "made by hand" line).
 
 ## Code Tour and App Map
 
-- [ ] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
-- [ ] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
-- [ ] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
+- [x] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
+- [x] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
+- [x] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
-Activity and evidence: [what actually happened; real document/test/code references; unfinished work if interrupted]
-Route and stops: [actual paths and symbols; guided stops completed, or reference-only route]
-Edit outcome: [tried/kept/reverted/declined/not applicable; verification if changed]
-Reflection: [offered/answered/declined/already covered — personal answer belongs only in the ignored profile]
-Activity mode: [live app and editor, explicit static fallback, focused alternative, prior practice, or recap]
+Activity and evidence: brief recap tied to the learner's goal (Canvas, Web Audio, game loop). One key press was traced through the real code in chat, and the learner chose to move on ("do it all"). The practice to reuse is grounded in the slice-2 coil play-test → `COIL_DEGREES`/`windingDegrees` in `src/game/coil.ts` → `tests/unit/coil.test.ts`.
+Route and stops: reference-only route. `src/engine/loop.ts` (`frame`), then `src/scenes/PlayScene.ts` (`this.stepAcc += dt * 1000` → `world.step()`), then `src/scenes/draw.ts` (`drawSnake`), with a bonus stop at `src/audio/sequencer.ts` (`tick`, `stepsDue`).
+Edit outcome: not applicable. The optional `classicStepMs` tweak was offered; the learner said "do it all", and the agent left the tuned speed unchanged rather than altering gameplay on their behalf.
+Reflection: offered in the hand-off as an optional one-liner.
+Activity mode: recap with a reference route, plus `devpost/app-map.html` (checked in the browser pane: renders, no horizontal overflow, works without scripts).
 
 ## Revisions
 - Added `src/game/world.ts` (one level's rules: board + snake + fruit + score, returning events), and `src/scenes/draw.ts` / `src/scenes/hud.ts` (shared board, snake, HUD and d-pad drawing). The spec's file tree had no single home for the step logic or for drawing shared across scenes. This is an internal structure change only.
@@ -135,3 +137,4 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 - Act II, applying what the coil play-test taught: Mira also freezes in "panic" while you circle her, Grub's return is quicker but still gentler than the original 4 s plan (5/4.5/4 s up), and Mira's trail lasts 2 s instead of 3. Added a `?debug=1&chapter=N` link for testing and demo recording. The hint banner now moves to whichever end of the board Pip isn't on (a screenshot showed it hiding Pip's Ch4 start).
 - Act III: Viper also slows right down while you circle her (the same forgiving "panic" rule as the other bosses), and after a hit she slithers off and re-enters far from Pip, which is how she "breaks free". Her start was moved off a pillar (caught by a unit test). Hint banners now use the compact dialogue font, with a test keeping every line at 26 characters or fewer, after a screenshot showed long tips overflowing a phone screen.
 - Finale: the crumble no longer waits for Pip to be completely clear of the edge, since a long snake almost always touches it and the ring could wait forever. The ring now crumbles on schedule, but the cells Pip is on (plus the two ahead of his head, for 1 s) stay open until he moves off them. The King also freezes while you circle him, like the other bosses. Each phase change saves `story.kingPhase` (the mini-checkpoint) and switches to that phase's music. Phase 3 brings back the home snake song, fast and triumphant. Beating him resets the phase to 1 for replays and rolls the credits, and Home then shows "STORY COMPLETE!".
+- Planning docs tidied at the learner's request: two quotes with strong language and two offhand remarks were rewritten as neutral paraphrases. No decisions changed.

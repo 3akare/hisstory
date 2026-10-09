@@ -11,7 +11,7 @@ A retro pixel-art Snake game you play in the browser, with a full story mode: ch
 **Snake with a story.** HISSTORY gives Snake what Zuma Revenge gave Zuma: a narrative with a **revenge chain**. Each boss you beat sends someone after you ("that was my brother, I'll make you pay" / "I'm back, and stronger"). Bosses are defeated by **coil to conquer**: you wrap your body around them instead of eating them, so Snake's own core move becomes the boss mechanic.
 
 ## Who It's For
-**The learner.** "It's just for me… I've had the bloody idea in my head for so long. I just want to get it out there." HISSTORY is the Snake game they've wanted to play and nobody has made. A secondary audience is anyone who grew up on Snake and Zuma Revenge-style story games.
+**The learner.** It's a game they've wanted to make for a long time: "It's just for me… I just want to get it out there." HISSTORY is the Snake game they've wanted to play and nobody has made. A secondary audience is anyone who grew up on Snake and Zuma Revenge-style story games.
 
 ## The Core Loop
 Open the game → the home screen plays a subtle snake theme (it can be toggled off) → pick **Classic** (endless snake, chase a high score) or **Story**.

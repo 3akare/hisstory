@@ -58,7 +58,7 @@ No game engine: this was the agent's recommendation, which the learner accepted.
   npm run build      # static site in dist/
   ```
 - **Debug mode:** open with `?debug=1` to jump to any chapter or boss phase, toggle invincibility, and show coil-detection overlays. This is essential for testing late bosses and for recording a clean demo. It's hidden from normal players.
-- **Deployment (learner: "host on whatever"; agent's choice):** **GitHub Pages via GitHub Actions**. `.github/workflows/deploy.yml` runs tests, then the build, then deploys `dist/` on every push to `main`. In the repo, go to Settings → Pages → Source: GitHub Actions. Vite `base` is set to `'./'` so it works under `https://<user>.github.io/hisstory/`. Guide: https://vite.dev/guide/static-deploy#github-pages
+- **Deployment (learner: no hosting preference; agent's choice):** **GitHub Pages via GitHub Actions**. `.github/workflows/deploy.yml` runs tests, then the build, then deploys `dist/` on every push to `main`. In the repo, go to Settings → Pages → Source: GitHub Actions. Vite `base` is set to `'./'` so it works under `https://<user>.github.io/hisstory/`. Guide: https://vite.dev/guide/static-deploy#github-pages
 - **Demo recording (`6-ship`):** record from the live URL with `?debug=1` available to jump to a boss. Desktop browser at 1280×720 or larger, music on.
 
 ## Look and Feel
@@ -366,7 +366,7 @@ Nothing in the kernel is faked: story, revenge chain and coil to conquer are all
 **Learner decisions**
 - **TS + plain Canvas 2D + Vite, no engine:** the agent's recommendation, accepted ("I trust you"), for the learning goals of Canvas, Web Audio and the game loop. The tradeoff is hand-built scene, input and tween code.
 - **Music matches each scene, catchy, and every boss gets its own song.** The learner was unsure about generated music, so the agent chose original synth compositions *with a CC0 audio-file fallback per track* if any track isn't good enough.
-- **Hosting: "whatever"** → agent chose GitHub Pages (free, same repo, auto-deploy).
+- **Hosting: no preference** → agent chose GitHub Pages (free, same repo, auto-deploy).
 - **Save everything constantly, including mid-level, and replays share the save** (lives and score carry across replays).
 - **Quality bar: "no mistakes, end to end."** That means unit tests on all rules, Playwright smoke tests on desktop and mobile, a debug mode for reaching every boss, and the CI deploy blocked if tests fail.
 
