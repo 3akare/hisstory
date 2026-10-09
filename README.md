@@ -4,6 +4,14 @@ A retro pixel-art Snake game for the browser with a 10-chapter story mode, rival
 
 **Play:** https://3akare.github.io/hisstory/ (deployed by GitHub Actions from `main`)
 
+![HISSTORY title screen](docs/screenshots/01-home.png)
+
+| | |
+|---|---|
+| ![The story map: 10 chapters across 4 acts](docs/screenshots/02-map.png) | ![A cutscene with Pip](docs/screenshots/03-cutscene.png) |
+| ![Coil to conquer: circling Grub the Mole](docs/screenshots/04-grub.png) | ![Desert Ruins: portal fruit in a sandstorm](docs/screenshots/05-desert-portals.png) |
+| ![The Hollow King finale](docs/screenshots/08-hollow-king.png) | |
+
 ## Modes
 
 - **Classic:** endless Snake. Walls and your own tail end the run, the snake speeds up as it grows, and your best score is saved.
